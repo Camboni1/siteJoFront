@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
 
@@ -77,12 +78,15 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="mt-8 grid gap-4 md:grid-cols-3">
-                    <div className="rounded-2xl border border-white/10 bg-neutral-900 p-6">
+                    <Link
+                        href="/dashboard/appointments"
+                        className="rounded-2xl border border-white/10 bg-neutral-900 p-6 transition hover:border-white/30"
+                    >
                         <h3 className="text-lg font-semibold">Rendez-vous</h3>
                         <p className="mt-2 text-sm text-neutral-400">
-                            Gestion des demandes de rendez-vous.
+                            Prendre un rendez-vous et suivre tes demandes.
                         </p>
-                    </div>
+                    </Link>
 
                     <div className="rounded-2xl border border-white/10 bg-neutral-900 p-6">
                         <h3 className="text-lg font-semibold">Véhicules</h3>
@@ -98,6 +102,29 @@ export default function DashboardPage() {
                         </p>
                     </div>
                 </div>
+
+                {(user.role === "ROLE_EMPLOYEE" || user.role === "ROLE_ADMIN") && (
+                    <div className="mt-8">
+                        <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+                            Espace employé
+                        </h3>
+
+                        <div className="mt-4 grid gap-4 md:grid-cols-3">
+                            <Link
+                                href="/employee/appointments"
+                                className="rounded-2xl border border-white/10 bg-neutral-900 p-6 transition hover:border-white/30"
+                            >
+                                <h3 className="text-lg font-semibold">
+                                    Rendez-vous du garage
+                                </h3>
+                                <p className="mt-2 text-sm text-neutral-400">
+                                    Confirmer, annuler et clôturer les
+                                    rendez-vous des clients.
+                                </p>
+                            </Link>
+                        </div>
+                    </div>
+                )}
             </section>
         </main>
     );

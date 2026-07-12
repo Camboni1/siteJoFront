@@ -56,7 +56,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     useEffect(() => {
-        refreshUser().finally(() => setLoading(false));
+        let cancelled = false;
+
+        authApi
+            .getMe()
+            .then((currentUser) => {
+                if (!cancelled) {
+                    setUser(currentUser);
+                }
+            })
+            .catch(() => {
+                if (!cancelled) {
+                    setUser(null);
+                }
+            })
+            .finally(() => {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            });
+
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
     return (
