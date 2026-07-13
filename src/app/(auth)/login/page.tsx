@@ -1,8 +1,10 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
+import { Brand } from "@/components/ui/brand";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -31,57 +33,65 @@ export default function LoginPage() {
     }
 
     return (
-        <main className="min-h-screen bg-neutral-950 text-white flex items-center justify-center px-4">
-            <div className="w-full max-w-md rounded-2xl border border-white/10 bg-neutral-900 p-8 shadow-2xl">
-                <div className="mb-8">
-                    <p className="text-sm text-neutral-400">Garage Jojo</p>
-                    <h1 className="mt-2 text-3xl font-bold">Connexion</h1>
-                    <p className="mt-2 text-neutral-400">
-                        Connecte-toi à ton espace.
-                    </p>
+        <main className="flex min-h-screen items-center justify-center px-4 py-12">
+            <div className="w-full max-w-md">
+                <div className="card p-8">
+                    <div className="mb-8">
+                        <Brand />
+                        <h1 className="mt-4 text-2xl font-semibold tracking-tight">
+                            Connexion
+                        </h1>
+                        <p className="mt-1 text-sm text-neutral-400">
+                            Connecte-toi à ton espace.
+                        </p>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        <div>
+                            <label className="field-label">Email</label>
+                            <input
+                                type="email"
+                                className="input"
+                                value={email}
+                                onChange={(event) => setEmail(event.target.value)}
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <label className="field-label">Mot de passe</label>
+                            <input
+                                type="password"
+                                className="input"
+                                value={password}
+                                onChange={(event) =>
+                                    setPassword(event.target.value)
+                                }
+                                required
+                            />
+                        </div>
+
+                        {error && <div className="alert-error">{error}</div>}
+
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="btn-primary w-full py-3"
+                        >
+                            {loading ? "Connexion..." : "Se connecter"}
+                        </button>
+                    </form>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5">
-                    <div>
-                        <label className="mb-2 block text-sm text-neutral-300">
-                            Email
-                        </label>
-                        <input
-                            type="email"
-                            className="w-full rounded-xl border border-white/10 bg-neutral-950 px-4 py-3 text-white outline-none transition focus:border-white/30"
-                            value={email}
-                            onChange={(event) => setEmail(event.target.value)}
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <label className="mb-2 block text-sm text-neutral-300">
-                            Mot de passe
-                        </label>
-                        <input
-                            type="password"
-                            className="w-full rounded-xl border border-white/10 bg-neutral-950 px-4 py-3 text-white outline-none transition focus:border-white/30"
-                            value={password}
-                            onChange={(event) => setPassword(event.target.value)}
-                            required
-                        />
-                    </div>
-
-                    {error && (
-                        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-                            {error}
-                        </div>
-                    )}
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full rounded-xl bg-white px-4 py-3 font-semibold text-neutral-950 transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-60"
+                <p className="mt-6 text-center text-sm text-neutral-400">
+                    Pas encore de compte ?{" "}
+                    <Link
+                        href="/register"
+                        className="font-medium text-white underline-offset-4 hover:underline"
                     >
-                        {loading ? "Connexion..." : "Se connecter"}
-                    </button>
-                </form>
+                        Créer un compte
+                    </Link>
+                </p>
             </div>
         </main>
     );

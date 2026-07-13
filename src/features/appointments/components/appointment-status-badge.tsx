@@ -7,8 +7,9 @@ import {
 export function AppointmentStatusBadge({ status }: { status: AppointmentStatus }) {
     return (
         <span
-            className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium ${APPOINTMENT_STATUS_BADGE_CLASSES[status]}`}
+            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium whitespace-nowrap ${APPOINTMENT_STATUS_BADGE_CLASSES[status]}`}
         >
+            <span className="h-1 w-1 rounded-full bg-current" aria-hidden />
             {APPOINTMENT_STATUS_LABELS[status]}
         </span>
     );

@@ -4,6 +4,9 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
+import { isStaff, ROLE_LABELS } from "@/features/auth/lib/roles";
+import { PageHeader } from "@/components/ui/page-header";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 export default function DashboardPage() {
     const router = useRouter();
@@ -22,11 +25,7 @@ export default function DashboardPage() {
     }
 
     if (loading) {
-        return (
-            <main className="min-h-screen bg-neutral-950 text-white flex items-center justify-center">
-                <p className="text-neutral-400">Chargement...</p>
-            </main>
-        );
+        return <LoadingScreen />;
     }
 
     if (!user) {
@@ -34,89 +33,120 @@ export default function DashboardPage() {
     }
 
     return (
-        <main className="min-h-screen bg-neutral-950 text-white">
-            <header className="border-b border-white/10 bg-neutral-900">
-                <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-                    <div>
-                        <p className="text-sm text-neutral-400">Garage Jojo</p>
-                        <h1 className="text-2xl font-bold">Dashboard</h1>
-                    </div>
-
-                    <button
-                        onClick={handleLogout}
-                        className="rounded-xl border border-white/10 px-4 py-2 text-sm text-neutral-200 transition hover:bg-white hover:text-neutral-950"
-                    >
+        <main className="min-h-screen">
+            <PageHeader
+                title="Dashboard"
+                action={
+                    <button onClick={handleLogout} className="btn-ghost">
                         Déconnexion
                     </button>
-                </div>
-            </header>
+                }
+            />
 
-            <section className="mx-auto max-w-6xl px-6 py-8">
-                <div className="rounded-2xl border border-white/10 bg-neutral-900 p-6">
-                    <p className="text-neutral-400">Connecté en tant que</p>
+            <section className="mx-auto max-w-6xl space-y-10 px-6 py-10">
+                <div className="card">
+                    <p className="text-sm text-neutral-400">
+                        Connecté en tant que
+                    </p>
 
-                    <h2 className="mt-2 text-2xl font-bold">
+                    <h2 className="mt-1 text-2xl font-semibold tracking-tight">
                         {user.firstName} {user.lastName}
                     </h2>
 
                     <div className="mt-6 grid gap-4 md:grid-cols-3">
-                        <div className="rounded-xl border border-white/10 bg-neutral-950 p-4">
-                            <p className="text-sm text-neutral-500">Email</p>
-                            <p className="mt-1">{user.email}</p>
+                        <div className="rounded-xl border border-white/10 bg-neutral-950/60 p-4">
+                            <p className="text-xs text-neutral-500">Email</p>
+                            <p className="mt-1 truncate text-sm">
+                                {user.email}
+                            </p>
                         </div>
 
-                        <div className="rounded-xl border border-white/10 bg-neutral-950 p-4">
-                            <p className="text-sm text-neutral-500">Rôle</p>
-                            <p className="mt-1">{user.role}</p>
+                        <div className="rounded-xl border border-white/10 bg-neutral-950/60 p-4">
+                            <p className="text-xs text-neutral-500">Rôle</p>
+                            <p className="mt-1 text-sm">
+                                {ROLE_LABELS[user.role]}
+                            </p>
                         </div>
 
-                        <div className="rounded-xl border border-white/10 bg-neutral-950 p-4">
-                            <p className="text-sm text-neutral-500">ID</p>
-                            <p className="mt-1 truncate">{user.id}</p>
+                        <div className="rounded-xl border border-white/10 bg-neutral-950/60 p-4">
+                            <p className="text-xs text-neutral-500">
+                                Identifiant
+                            </p>
+                            <p className="mt-1 truncate text-sm text-neutral-400">
+                                {user.id}
+                            </p>
                         </div>
                     </div>
                 </div>
 
-                <div className="mt-8 grid gap-4 md:grid-cols-3">
-                    <Link
-                        href="/dashboard/appointments"
-                        className="rounded-2xl border border-white/10 bg-neutral-900 p-6 transition hover:border-white/30"
-                    >
-                        <h3 className="text-lg font-semibold">Rendez-vous</h3>
-                        <p className="mt-2 text-sm text-neutral-400">
-                            Prendre un rendez-vous et suivre tes demandes.
-                        </p>
-                    </Link>
+                <div>
+                    <h3 className="section-title">Mon espace</h3>
 
-                    <div className="rounded-2xl border border-white/10 bg-neutral-900 p-6">
-                        <h3 className="text-lg font-semibold">Véhicules</h3>
-                        <p className="mt-2 text-sm text-neutral-400">
-                            Gestion des véhicules d’occasion.
-                        </p>
-                    </div>
+                    <div className="mt-4 grid gap-4 md:grid-cols-3">
+                        <Link
+                            href="/dashboard/appointments"
+                            className="card group transition hover:border-white/25"
+                        >
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-semibold">Rendez-vous</h3>
+                                <span
+                                    aria-hidden
+                                    className="text-neutral-500 transition group-hover:translate-x-1 group-hover:text-white"
+                                >
+                                    →
+                                </span>
+                            </div>
+                            <p className="mt-2 text-sm text-neutral-400">
+                                Prendre un rendez-vous et suivre tes demandes.
+                            </p>
+                        </Link>
 
-                    <div className="rounded-2xl border border-white/10 bg-neutral-900 p-6">
-                        <h3 className="text-lg font-semibold">Factures</h3>
-                        <p className="mt-2 text-sm text-neutral-400">
-                            Documents, factures et uploads.
-                        </p>
+                        <div className="card opacity-60">
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-semibold">Véhicules</h3>
+                                <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-neutral-500">
+                                    Bientôt
+                                </span>
+                            </div>
+                            <p className="mt-2 text-sm text-neutral-400">
+                                Véhicules d&apos;occasion du garage.
+                            </p>
+                        </div>
+
+                        <div className="card opacity-60">
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-semibold">Factures</h3>
+                                <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-neutral-500">
+                                    Bientôt
+                                </span>
+                            </div>
+                            <p className="mt-2 text-sm text-neutral-400">
+                                Documents et factures.
+                            </p>
+                        </div>
                     </div>
                 </div>
 
-                {(user.role === "ROLE_EMPLOYEE" || user.role === "ROLE_ADMIN") && (
-                    <div className="mt-8">
-                        <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-                            Espace employé
-                        </h3>
+                {isStaff(user) && (
+                    <div>
+                        <h3 className="section-title">Espace employé</h3>
 
                         <div className="mt-4 grid gap-4 md:grid-cols-3">
                             <Link
                                 href="/employee/appointments"
-                                className="rounded-2xl border border-white/10 bg-neutral-900 p-6 transition hover:border-white/30"
+                                className="card group transition hover:border-white/25"
                             >
-                                <h3 className="text-lg font-semibold">
-                                    Rendez-vous du garage
-                                </h3>
+                                <div className="flex items-center justify-between">
+                                    <h3 className="font-semibold">
+                                        Rendez-vous du garage
+                                    </h3>
+                                    <span
+                                        aria-hidden
+                                        className="text-neutral-500 transition group-hover:translate-x-1 group-hover:text-white"
+                                    >
+                                        →
+                                    </span>
+                                </div>
                                 <p className="mt-2 text-sm text-neutral-400">
                                     Confirmer, annuler et clôturer les
                                     rendez-vous des clients.
