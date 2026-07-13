@@ -6,11 +6,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
     title: {
-        default: "Garage Jojo",
-        template: "%s · Garage Jojo",
+        default: "CamboGarage",
+        template: "%s · CamboGarage",
     },
     description:
-        "Garage Jojo — entretien, réparation, véhicules d'occasion et prise de rendez-vous en ligne.",
+        "CamboGarage — entretien, réparation, véhicules d'occasion et prise de rendez-vous en ligne.",
 };
 
 export default function RootLayout({

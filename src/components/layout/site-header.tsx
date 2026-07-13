@@ -69,7 +69,7 @@ export function SiteHeader() {
     return (
         <header className="site-header">
             <div className="mx-auto flex h-16 max-w-7xl items-center gap-5 px-5 sm:px-6">
-                <Link href="/" aria-label="Garage Jojo — accueil" className="shrink-0">
+                <Link href="/" aria-label="CamboGarage — accueil" className="shrink-0">
                     <Brand />
                 </Link>
 

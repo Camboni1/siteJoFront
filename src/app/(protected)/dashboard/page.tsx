@@ -84,7 +84,7 @@ export default function DashboardPage() {
                             </h3>
                         </div>
                         <span className="hidden font-mono text-[0.65rem] tracking-[0.12em] text-faint uppercase sm:block">
-                            Garage Jojo / Client
+                            CamboGarage / Client
                         </span>
                     </div>
 

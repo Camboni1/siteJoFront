@@ -6,7 +6,7 @@ export function SiteFooter() {
         <footer className="border-t border-line/80 bg-surface-soft/70">
             <div className="mx-auto grid max-w-7xl gap-10 px-5 py-10 sm:px-6 md:grid-cols-[1.4fr_0.8fr_0.8fr]">
                 <div>
-                    <Link href="/" aria-label="Garage Jojo — accueil">
+                    <Link href="/" aria-label="CamboGarage — accueil">
                         <Brand />
                     </Link>
                     <p className="mt-4 max-w-sm text-sm leading-6 text-muted">
@@ -59,7 +59,7 @@ export function SiteFooter() {
 
             <div className="border-t border-line/70">
                 <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-4 font-mono text-[0.62rem] tracking-[0.08em] text-faint uppercase sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                    <span>© {new Date().getFullYear()} Garage Jojo</span>
+                    <span>© {new Date().getFullYear()} CamboGarage</span>
                     <span>Atelier automobile · Namur</span>
                 </div>
             </div>

@@ -130,7 +130,7 @@ export default function RegisterPage() {
 
                 <aside className="relative hidden overflow-hidden border-l border-line bg-surface-soft p-10 lg:flex lg:flex-col lg:justify-between">
                     <div className="absolute top-0 right-0 h-64 w-64 translate-x-1/3 -translate-y-1/3 rounded-full bg-accent/10 blur-3xl" />
-                    <p className="eyebrow relative">Garage Jojo / Bienvenue</p>
+                    <p className="eyebrow relative">CamboGarage / Bienvenue</p>
 
                     <div className="relative space-y-3">
                         {[
