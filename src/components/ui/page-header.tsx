@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { Brand } from "@/components/ui/brand";
 
 export function PageHeader({
     title,
@@ -14,22 +13,20 @@ export function PageHeader({
     action?: ReactNode;
 }) {
     return (
-        <header className="sticky top-0 z-10 border-b border-white/10 bg-neutral-950/80 backdrop-blur">
-            <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
+        <header className="border-b border-line/70 bg-surface-soft/55">
+            <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-5 sm:px-6">
                 <div className="min-w-0">
                     {backHref ? (
                         <Link
                             href={backHref}
-                            className="inline-flex items-center gap-1 text-sm text-neutral-400 transition hover:text-white"
+                            className="mb-1 inline-flex items-center gap-1.5 text-xs font-medium text-muted transition hover:text-accent"
                         >
                             <span aria-hidden>←</span>
                             {backLabel}
                         </Link>
-                    ) : (
-                        <Brand />
-                    )}
+                    ) : null}
 
-                    <h1 className="truncate text-xl font-semibold tracking-tight">
+                    <h1 className="truncate text-xl font-semibold tracking-tight text-ink sm:text-2xl">
                         {title}
                     </h1>
                 </div>

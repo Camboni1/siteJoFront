@@ -3,6 +3,7 @@ export type GarageService = {
     name: string;
     description: string | null;
     startingPrice: number | null;
+    durationMinutes: number;
     active: boolean;
     displayOrder: number;
     createdAt: string;

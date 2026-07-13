@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
 import { isStaff } from "@/features/auth/lib/roles";
@@ -13,6 +12,8 @@ import type {
 import { AppointmentStatusBadge } from "@/features/appointments/components/appointment-status-badge";
 import { APPOINTMENT_STATUS_LABELS } from "@/features/appointments/lib/appointment-status";
 import { formatDateTime, formatTime } from "@/lib/format";
+import { PageHeader } from "@/components/ui/page-header";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 const ALL_STATUSES = Object.keys(
     APPOINTMENT_STATUS_LABELS
@@ -62,11 +63,7 @@ export default function EmployeeAppointmentsPage() {
     }, [user]);
 
     if (loading || !user || !isStaff(user)) {
-        return (
-            <main className="min-h-screen bg-neutral-950 text-white flex items-center justify-center">
-                <p className="text-neutral-400">Chargement...</p>
-            </main>
-        );
+        return <LoadingScreen />;
     }
 
     const filtered = appointments.filter((appointment) => {
@@ -82,29 +79,34 @@ export default function EmployeeAppointmentsPage() {
     });
 
     return (
-        <main className="min-h-screen bg-neutral-950 text-white">
-            <header className="border-b border-white/10 bg-neutral-900">
-                <div className="mx-auto max-w-6xl px-6 py-5">
-                    <Link
-                        href="/dashboard"
-                        className="text-sm text-neutral-400 transition hover:text-white"
-                    >
-                        ← Dashboard
-                    </Link>
-                    <h1 className="text-2xl font-bold">
-                        Rendez-vous du garage
-                    </h1>
-                </div>
-            </header>
+        <main className="flex-1">
+            <PageHeader
+                title="Planning du garage"
+                backHref="/dashboard"
+                backLabel="Tableau de bord"
+            />
 
-            <section className="mx-auto max-w-6xl space-y-6 px-6 py-8">
-                <div className="flex flex-wrap gap-4">
+            <section className="mx-auto max-w-6xl space-y-6 px-5 py-8 sm:px-6 sm:py-10">
+                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                     <div>
-                        <label className="mb-2 block text-sm text-neutral-300">
+                        <p className="eyebrow">Gestion atelier</p>
+                        <h2 className="mt-2 text-xl font-semibold tracking-tight">
+                            Tous les rendez-vous
+                        </h2>
+                    </div>
+                    <span className="w-fit rounded-full border border-line bg-surface-soft px-3 py-1 font-mono text-xs text-muted">
+                        {String(filtered.length).padStart(2, "0")} résultat
+                        {filtered.length !== 1 ? "s" : ""}
+                    </span>
+                </div>
+
+                <div className="card flex flex-wrap items-end gap-4 p-4">
+                    <div className="min-w-44 flex-1 sm:flex-none">
+                        <label className="field-label">
                             Statut
                         </label>
                         <select
-                            className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2.5 text-white outline-none transition focus:border-white/30"
+                            className="input py-2.5"
                             value={statusFilter}
                             onChange={(event) =>
                                 setStatusFilter(
@@ -123,13 +125,13 @@ export default function EmployeeAppointmentsPage() {
                         </select>
                     </div>
 
-                    <div>
-                        <label className="mb-2 block text-sm text-neutral-300">
+                    <div className="min-w-44 flex-1 sm:flex-none">
+                        <label className="field-label">
                             Date
                         </label>
                         <input
                             type="date"
-                            className="rounded-xl border border-white/10 bg-neutral-900 px-4 py-2.5 text-white outline-none transition focus:border-white/30"
+                            className="input py-2.5"
                             value={dateFilter}
                             onChange={(event) =>
                                 setDateFilter(event.target.value)
@@ -143,45 +145,39 @@ export default function EmployeeAppointmentsPage() {
                                 setStatusFilter("");
                                 setDateFilter("");
                             }}
-                            className="self-end rounded-xl border border-white/10 px-4 py-2.5 text-sm text-neutral-300 transition hover:bg-white/5"
+                            className="btn-ghost"
                         >
                             Réinitialiser
                         </button>
                     )}
                 </div>
 
-                {error && (
-                    <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-                        {error}
-                    </div>
-                )}
+                {error && <div className="alert-error">{error}</div>}
 
                 {loadingAppointments ? (
-                    <p className="text-neutral-400">
-                        Chargement des rendez-vous...
-                    </p>
+                    <div className="empty-state">Chargement des rendez-vous...</div>
                 ) : filtered.length === 0 ? (
-                    <p className="text-neutral-400">
+                    <div className="empty-state">
                         Aucun rendez-vous ne correspond aux filtres.
-                    </p>
+                    </div>
                 ) : (
-                    <div className="overflow-x-auto rounded-2xl border border-white/10 bg-neutral-900">
+                    <div className="overflow-x-auto rounded-2xl border border-line bg-surface shadow-[0_18px_50px_rgba(0,0,0,0.16)]">
                         <table className="w-full text-left text-sm">
-                            <thead className="border-b border-white/10 text-neutral-400">
+                            <thead className="border-b border-line bg-surface-soft font-mono text-[0.65rem] tracking-wider text-faint uppercase">
                                 <tr>
-                                    <th className="px-6 py-4 font-medium">
+                                    <th className="px-6 py-4 font-semibold">
                                         Date
                                     </th>
-                                    <th className="px-6 py-4 font-medium">
+                                    <th className="px-6 py-4 font-semibold">
                                         Client
                                     </th>
-                                    <th className="px-6 py-4 font-medium">
+                                    <th className="px-6 py-4 font-semibold">
                                         Service
                                     </th>
-                                    <th className="px-6 py-4 font-medium">
+                                    <th className="px-6 py-4 font-semibold">
                                         Véhicule
                                     </th>
-                                    <th className="px-6 py-4 font-medium">
+                                    <th className="px-6 py-4 font-semibold">
                                         Statut
                                     </th>
                                 </tr>
@@ -195,7 +191,7 @@ export default function EmployeeAppointmentsPage() {
                                                 `/employee/appointments/${appointment.id}`
                                             )
                                         }
-                                        className="cursor-pointer border-b border-white/5 transition last:border-b-0 hover:bg-white/5"
+                                        className="cursor-pointer border-b border-line/70 transition last:border-b-0 hover:bg-surface-raised"
                                     >
                                         <td className="px-6 py-4">
                                             {formatDateTime(
@@ -207,10 +203,10 @@ export default function EmployeeAppointmentsPage() {
                                             {appointment.customerFirstName}{" "}
                                             {appointment.customerLastName}
                                         </td>
-                                        <td className="px-6 py-4 text-neutral-300">
+                                        <td className="px-6 py-4 text-muted">
                                             {appointment.serviceName ?? "—"}
                                         </td>
-                                        <td className="px-6 py-4 text-neutral-300">
+                                        <td className="px-6 py-4 text-muted">
                                             {[
                                                 appointment.vehicleBrand,
                                                 appointment.vehicleModel,

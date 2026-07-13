@@ -13,9 +13,15 @@ export function createAppointment(data: CreateAppointmentRequest) {
     });
 }
 
-export function getAvailability(date: string) {
+export function getAvailability(date: string, serviceId?: string) {
+    const params = new URLSearchParams({ date });
+
+    if (serviceId) {
+        params.set("serviceId", serviceId);
+    }
+
     return apiFetch<Availability>(
-        `/api/v1/appointments/availability?date=${encodeURIComponent(date)}`,
+        `/api/v1/appointments/availability?${params.toString()}`,
         {
             method: "GET",
         }

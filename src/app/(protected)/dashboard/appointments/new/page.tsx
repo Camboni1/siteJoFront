@@ -1,7 +1,6 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
 import * as appointmentsApi from "@/features/appointments/api/appointments-api";
@@ -12,6 +11,8 @@ import type {
 } from "@/features/appointments/types/appointment.types";
 import type { GarageService } from "@/features/garage-services/types/garage-service.types";
 import { formatTime } from "@/lib/format";
+import { PageHeader } from "@/components/ui/page-header";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 function toDateInputValue(date: Date) {
     const year = date.getFullYear();
@@ -19,6 +20,19 @@ function toDateInputValue(date: Date) {
     const day = String(date.getDate()).padStart(2, "0");
 
     return `${year}-${month}-${day}`;
+}
+
+function formatDuration(minutes: number) {
+    if (minutes < 60) {
+        return `${minutes} min`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+
+    return remainingMinutes === 0
+        ? `${hours} h`
+        : `${hours} h ${remainingMinutes} min`;
 }
 
 export default function NewAppointmentPage() {
@@ -71,7 +85,7 @@ export default function NewAppointmentPage() {
         let ignore = false;
 
         appointmentsApi
-            .getAvailability(date)
+            .getAvailability(date, serviceId || undefined)
             .then((result) => {
                 if (!ignore) {
                     setAvailability(result);
@@ -92,11 +106,14 @@ export default function NewAppointmentPage() {
         return () => {
             ignore = true;
         };
-    }, [user, date]);
+    }, [user, date, serviceId]);
 
     async function refreshAvailability() {
         try {
-            const result = await appointmentsApi.getAvailability(date);
+            const result = await appointmentsApi.getAvailability(
+                date,
+                serviceId || undefined
+            );
             setAvailability(result);
         } catch {
             // on garde les créneaux affichés
@@ -107,7 +124,7 @@ export default function NewAppointmentPage() {
         event.preventDefault();
 
         if (!selectedSlot) {
-            setError("Choisis un créneau disponible");
+            setError("Choisissez un créneau disponible");
             return;
         }
 
@@ -142,49 +159,58 @@ export default function NewAppointmentPage() {
     }
 
     if (loading) {
-        return (
-            <main className="min-h-screen bg-neutral-950 text-white flex items-center justify-center">
-                <p className="text-neutral-400">Chargement...</p>
-            </main>
-        );
+        return <LoadingScreen />;
     }
 
     if (!user) {
         return null;
     }
 
-    const slots =
-        availability && availability.date === date ? availability.slots : null;
+    const currentAvailability =
+        availability &&
+        availability.date === date &&
+        availability.serviceId === (serviceId || null)
+            ? availability
+            : null;
+    const slots = currentAvailability?.slots ?? null;
+    const selectedService = services.find(
+        (service) => service.id === serviceId
+    );
 
     return (
-        <main className="min-h-screen bg-neutral-950 text-white">
-            <header className="border-b border-white/10 bg-neutral-900">
-                <div className="mx-auto max-w-3xl px-6 py-5">
-                    <Link
-                        href="/dashboard/appointments"
-                        className="text-sm text-neutral-400 transition hover:text-white"
-                    >
-                        ← Mes rendez-vous
-                    </Link>
-                    <h1 className="text-2xl font-bold">Nouveau rendez-vous</h1>
+        <main className="flex-1">
+            <PageHeader
+                title="Nouveau rendez-vous"
+                backHref="/dashboard/appointments"
+                backLabel="Mes rendez-vous"
+            />
+
+            <section className="mx-auto max-w-3xl px-5 py-8 sm:px-6 sm:py-10">
+                <div className="mb-8">
+                    <p className="eyebrow">Demande d’intervention</p>
+                    <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
+                        Indiquez la prestation souhaitée, choisissez un créneau
+                        et complétez les informations du véhicule.
+                    </p>
                 </div>
-            </header>
 
-            <section className="mx-auto max-w-3xl px-6 py-8">
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="rounded-2xl border border-white/10 bg-neutral-900 p-6">
-                        <h2 className="font-semibold">Prestation</h2>
+                    <div className="card">
+                        <p className="section-title">Étape 01</p>
+                        <h2 className="mt-2 text-lg font-semibold">Prestation</h2>
 
-                        <div className="mt-4">
-                            <label className="mb-2 block text-sm text-neutral-300">
+                        <div className="mt-5">
+                            <label className="field-label">
                                 Service
                             </label>
                             <select
-                                className="w-full rounded-xl border border-white/10 bg-neutral-950 px-4 py-3 text-white outline-none transition focus:border-white/30"
+                                className="input"
                                 value={serviceId}
-                                onChange={(event) =>
-                                    setServiceId(event.target.value)
-                                }
+                                onChange={(event) => {
+                                    setServiceId(event.target.value);
+                                    setSelectedSlot(null);
+                                    setSlotsError(null);
+                                }}
                             >
                                 <option value="">
                                     Je ne sais pas / autre demande
@@ -195,22 +221,39 @@ export default function NewAppointmentPage() {
                                         {service.startingPrice != null
                                             ? ` — à partir de ${service.startingPrice} €`
                                             : ""}
+                                        {` · ${formatDuration(service.durationMinutes)}`}
                                     </option>
                                 ))}
                             </select>
+
+                            {selectedService && (
+                                <div className="surface-muted mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
+                                    <span className="text-muted">
+                                        Durée estimée
+                                    </span>
+                                    <span className="font-mono text-xs font-semibold text-accent">
+                                        {formatDuration(
+                                            selectedService.durationMinutes
+                                        )}
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-white/10 bg-neutral-900 p-6">
-                        <h2 className="font-semibold">Date et créneau</h2>
+                    <div className="card">
+                        <p className="section-title">Étape 02</p>
+                        <h2 className="mt-2 text-lg font-semibold">
+                            Date et créneau
+                        </h2>
 
-                        <div className="mt-4">
-                            <label className="mb-2 block text-sm text-neutral-300">
+                        <div className="mt-5">
+                            <label className="field-label">
                                 Date
                             </label>
                             <input
                                 type="date"
-                                className="w-full rounded-xl border border-white/10 bg-neutral-950 px-4 py-3 text-white outline-none transition focus:border-white/30"
+                                className="input"
                                 value={date}
                                 min={toDateInputValue(new Date())}
                                 onChange={(event) => {
@@ -223,21 +266,33 @@ export default function NewAppointmentPage() {
                         </div>
 
                         <div className="mt-4">
+                            {currentAvailability && (
+                                <p className="mb-3 text-xs text-muted">
+                                    Les horaires proposés réservent{" "}
+                                    <span className="font-medium text-ink">
+                                        {formatDuration(
+                                            currentAvailability.durationMinutes
+                                        )}
+                                    </span>{" "}
+                                    dans le planning de l’atelier.
+                                </p>
+                            )}
+
                             {slotsError ? (
                                 <p className="text-sm text-red-300">
                                     {slotsError}
                                 </p>
                             ) : !slots ? (
-                                <p className="text-sm text-neutral-400">
+                                <p className="text-sm text-muted">
                                     Chargement des créneaux...
                                 </p>
                             ) : slots.length === 0 ? (
-                                <p className="text-sm text-neutral-400">
-                                    Le garage est fermé ce jour-là. Choisis une
+                                <p className="text-sm text-muted">
+                                    Le garage est fermé ce jour-là. Choisissez une
                                     autre date.
                                 </p>
                             ) : (
-                                <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
                                     {slots.map((slot) => {
                                         const selected =
                                             selectedSlot?.startAt ===
@@ -251,15 +306,26 @@ export default function NewAppointmentPage() {
                                                 onClick={() =>
                                                     setSelectedSlot(slot)
                                                 }
-                                                className={`rounded-xl border px-3 py-2 text-sm transition ${
+                                                className={`rounded-lg border px-3 py-2.5 font-mono text-xs transition ${
                                                     selected
-                                                        ? "border-white bg-white font-semibold text-neutral-950"
+                                                        ? "border-accent bg-accent font-semibold text-[#201b15] shadow-[0_6px_18px_rgba(232,160,75,0.14)]"
                                                         : slot.available
-                                                          ? "border-white/10 bg-neutral-950 text-white hover:border-white/40"
-                                                          : "cursor-not-allowed border-white/5 bg-neutral-950 text-neutral-600 line-through"
+                                                          ? "border-line bg-surface-soft text-ink hover:border-accent/50 hover:text-accent"
+                                                          : "cursor-not-allowed border-line/60 bg-surface-soft/50 text-faint line-through opacity-50"
                                                 }`}
                                             >
-                                                {formatTime(slot.startAt)}
+                                                <span className="block">
+                                                    {formatTime(slot.startAt)}
+                                                </span>
+                                                <span
+                                                    className={`mt-0.5 block text-[0.6rem] ${
+                                                        selected
+                                                            ? "text-[#201b15]/70"
+                                                            : "text-faint"
+                                                    }`}
+                                                >
+                                                    → {formatTime(slot.endAt)}
+                                                </span>
                                             </button>
                                         );
                                     })}
@@ -268,17 +334,20 @@ export default function NewAppointmentPage() {
                         </div>
                     </div>
 
-                    <div className="rounded-2xl border border-white/10 bg-neutral-900 p-6">
-                        <h2 className="font-semibold">Tes informations</h2>
+                    <div className="card">
+                        <p className="section-title">Étape 03</p>
+                        <h2 className="mt-2 text-lg font-semibold">
+                            Vos informations
+                        </h2>
 
-                        <div className="mt-4 space-y-4">
+                        <div className="mt-5 space-y-4">
                             <div>
-                                <label className="mb-2 block text-sm text-neutral-300">
+                                <label className="field-label">
                                     Téléphone
                                 </label>
                                 <input
                                     type="tel"
-                                    className="w-full rounded-xl border border-white/10 bg-neutral-950 px-4 py-3 text-white outline-none transition focus:border-white/30"
+                                    className="input"
                                     value={phone}
                                     onChange={(event) =>
                                         setPhone(event.target.value)
@@ -291,11 +360,11 @@ export default function NewAppointmentPage() {
 
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="mb-2 block text-sm text-neutral-300">
+                                    <label className="field-label">
                                         Marque du véhicule
                                     </label>
                                     <input
-                                        className="w-full rounded-xl border border-white/10 bg-neutral-950 px-4 py-3 text-white outline-none transition focus:border-white/30"
+                                        className="input"
                                         value={vehicleBrand}
                                         onChange={(event) =>
                                             setVehicleBrand(event.target.value)
@@ -306,11 +375,11 @@ export default function NewAppointmentPage() {
                                 </div>
 
                                 <div>
-                                    <label className="mb-2 block text-sm text-neutral-300">
+                                    <label className="field-label">
                                         Modèle
                                     </label>
                                     <input
-                                        className="w-full rounded-xl border border-white/10 bg-neutral-950 px-4 py-3 text-white outline-none transition focus:border-white/30"
+                                        className="input"
                                         value={vehicleModel}
                                         onChange={(event) =>
                                             setVehicleModel(event.target.value)
@@ -322,11 +391,11 @@ export default function NewAppointmentPage() {
                             </div>
 
                             <div>
-                                <label className="mb-2 block text-sm text-neutral-300">
+                                <label className="field-label">
                                     Plaque d&apos;immatriculation
                                 </label>
                                 <input
-                                    className="w-full rounded-xl border border-white/10 bg-neutral-950 px-4 py-3 text-white outline-none transition focus:border-white/30"
+                                    className="input font-mono uppercase"
                                     value={licensePlate}
                                     onChange={(event) =>
                                         setLicensePlate(event.target.value)
@@ -337,35 +406,32 @@ export default function NewAppointmentPage() {
                             </div>
 
                             <div>
-                                <label className="mb-2 block text-sm text-neutral-300">
+                                <label className="field-label">
                                     Message (facultatif)
                                 </label>
                                 <textarea
-                                    className="min-h-24 w-full rounded-xl border border-white/10 bg-neutral-950 px-4 py-3 text-white outline-none transition focus:border-white/30"
+                                    className="input min-h-28 resize-y"
                                     value={message}
                                     onChange={(event) =>
                                         setMessage(event.target.value)
                                     }
-                                    placeholder="Décris ton problème ou ta demande..."
+                                    placeholder="Décrivez votre problème ou votre demande..."
                                 />
                             </div>
                         </div>
                     </div>
 
-                    {error && (
-                        <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-                            {error}
-                        </div>
-                    )}
+                    {error && <div className="alert-error">{error}</div>}
 
                     <button
                         type="submit"
                         disabled={submitting || !selectedSlot}
-                        className="w-full rounded-xl bg-white px-4 py-3 font-semibold text-neutral-950 transition hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="btn-primary w-full py-3"
                     >
                         {submitting
                             ? "Envoi de la demande..."
                             : "Demander ce rendez-vous"}
+                        {!submitting && <span aria-hidden>→</span>}
                     </button>
                 </form>
             </section>

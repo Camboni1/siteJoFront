@@ -9,6 +9,8 @@ import type { Appointment } from "@/features/appointments/types/appointment.type
 import { AppointmentStatusBadge } from "@/features/appointments/components/appointment-status-badge";
 import { isCancellable } from "@/features/appointments/lib/appointment-status";
 import { formatDateTime, formatTime } from "@/lib/format";
+import { PageHeader } from "@/components/ui/page-header";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 export default function MyAppointmentsPage() {
     const router = useRouter();
@@ -44,7 +46,7 @@ export default function MyAppointmentsPage() {
                     setError(
                         error instanceof Error
                             ? error.message
-                            : "Impossible de charger tes rendez-vous"
+                            : "Impossible de charger vos rendez-vous"
                     );
                 }
             })
@@ -61,7 +63,7 @@ export default function MyAppointmentsPage() {
 
     async function handleCancel(appointment: Appointment) {
         const confirmed = window.confirm(
-            "Veux-tu vraiment annuler ce rendez-vous ?"
+            "Voulez-vous vraiment annuler ce rendez-vous ?"
         );
 
         if (!confirmed) {
@@ -93,11 +95,7 @@ export default function MyAppointmentsPage() {
     }
 
     if (loading) {
-        return (
-            <main className="min-h-screen bg-neutral-950 text-white flex items-center justify-center">
-                <p className="text-neutral-400">Chargement...</p>
-            </main>
-        );
+        return <LoadingScreen />;
     }
 
     if (!user) {
@@ -118,54 +116,55 @@ export default function MyAppointmentsPage() {
     );
 
     return (
-        <main className="min-h-screen bg-neutral-950 text-white">
-            <header className="border-b border-white/10 bg-neutral-900">
-                <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-                    <div>
-                        <Link
-                            href="/dashboard"
-                            className="text-sm text-neutral-400 transition hover:text-white"
-                        >
-                            ← Dashboard
-                        </Link>
-                        <h1 className="text-2xl font-bold">Mes rendez-vous</h1>
-                    </div>
-
+        <main className="flex-1">
+            <PageHeader
+                title="Mes rendez-vous"
+                backHref="/dashboard"
+                backLabel="Tableau de bord"
+                action={
                     <Link
                         href="/dashboard/appointments/new"
-                        className="rounded-xl bg-white px-4 py-2 text-sm font-semibold text-neutral-950 transition hover:bg-neutral-200"
+                        className="btn-primary"
                     >
-                        Nouveau rendez-vous
+                        <span className="text-base leading-none" aria-hidden>
+                            +
+                        </span>
+                        <span className="hidden sm:inline">Nouveau rendez-vous</span>
+                        <span className="sm:hidden">Nouveau</span>
                     </Link>
-                </div>
-            </header>
+                }
+            />
 
-            <section className="mx-auto max-w-6xl space-y-8 px-6 py-8">
-                {error && (
-                    <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-                        {error}
-                    </div>
-                )}
+            <section className="mx-auto max-w-6xl space-y-10 px-5 py-8 sm:px-6 sm:py-10">
+                {error && <div className="alert-error">{error}</div>}
 
                 {loadingAppointments ? (
-                    <p className="text-neutral-400">
-                        Chargement des rendez-vous...
-                    </p>
+                    <div className="empty-state">Chargement des rendez-vous...</div>
                 ) : (
                     <>
                         <div>
-                            <h2 className="text-lg font-semibold">À venir</h2>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="eyebrow">Planning</p>
+                                    <h2 className="mt-2 text-xl font-semibold tracking-tight">
+                                        À venir
+                                    </h2>
+                                </div>
+                                <span className="rounded-full border border-line bg-surface-soft px-3 py-1 font-mono text-xs text-muted">
+                                    {String(upcoming.length).padStart(2, "0")}
+                                </span>
+                            </div>
 
                             {upcoming.length === 0 ? (
-                                <p className="mt-3 text-sm text-neutral-400">
+                                <div className="empty-state mt-4">
                                     Aucun rendez-vous à venir.{" "}
                                     <Link
                                         href="/dashboard/appointments/new"
-                                        className="text-white underline underline-offset-4"
+                                        className="text-link"
                                     >
                                         Prendre un rendez-vous
                                     </Link>
-                                </p>
+                                </div>
                             ) : (
                                 <div className="mt-4 space-y-4">
                                     {upcoming.map((appointment) => (
@@ -183,12 +182,22 @@ export default function MyAppointmentsPage() {
                         </div>
 
                         <div>
-                            <h2 className="text-lg font-semibold">Passés</h2>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="section-title">Historique</p>
+                                    <h2 className="mt-2 text-xl font-semibold tracking-tight">
+                                        Passés
+                                    </h2>
+                                </div>
+                                <span className="rounded-full border border-line bg-surface-soft px-3 py-1 font-mono text-xs text-muted">
+                                    {String(past.length).padStart(2, "0")}
+                                </span>
+                            </div>
 
                             {past.length === 0 ? (
-                                <p className="mt-3 text-sm text-neutral-400">
+                                <div className="empty-state mt-4">
                                     Aucun rendez-vous passé.
-                                </p>
+                                </div>
                             ) : (
                                 <div className="mt-4 space-y-4">
                                     {past.map((appointment) => (
@@ -223,13 +232,14 @@ function AppointmentCard({
     const canCancel = onCancel && isCancellable(appointment.status);
 
     return (
-        <div className="rounded-2xl border border-white/10 bg-neutral-900 p-6">
+        <article className="card">
             <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
+                    <p className="section-title">Intervention</p>
                     <p className="font-semibold">
                         {appointment.serviceName ?? "Service non précisé"}
                     </p>
-                    <p className="mt-1 text-sm text-neutral-400">
+                    <p className="mt-1 font-mono text-xs text-muted">
                         {formatDateTime(appointment.startAt)} →{" "}
                         {formatTime(appointment.endAt)}
                     </p>
@@ -239,15 +249,18 @@ function AppointmentCard({
             </div>
 
             {(vehicle || appointment.licensePlate) && (
-                <p className="mt-4 text-sm text-neutral-300">
-                    {vehicle}
-                    {vehicle && appointment.licensePlate ? " · " : ""}
-                    {appointment.licensePlate}
-                </p>
+                <div className="surface-muted mt-5 flex flex-wrap items-center justify-between gap-2 text-sm">
+                    <span className="text-muted">Véhicule</span>
+                    <span className="font-medium">
+                        {vehicle}
+                        {vehicle && appointment.licensePlate ? " · " : ""}
+                        {appointment.licensePlate}
+                    </span>
+                </div>
             )}
 
             {appointment.message && (
-                <p className="mt-2 text-sm text-neutral-400">
+                <p className="mt-4 border-l-2 border-line pl-4 text-sm leading-6 text-muted">
                     {appointment.message}
                 </p>
             )}
@@ -256,11 +269,11 @@ function AppointmentCard({
                 <button
                     onClick={() => onCancel(appointment)}
                     disabled={cancelling}
-                    className="mt-4 rounded-xl border border-red-500/30 px-4 py-2 text-sm text-red-300 transition hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="btn-danger mt-5"
                 >
                     {cancelling ? "Annulation..." : "Annuler ce rendez-vous"}
                 </button>
             )}
-        </div>
+        </article>
     );
 }

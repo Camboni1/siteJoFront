@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
 import { isStaff } from "@/features/auth/lib/roles";
@@ -12,6 +11,8 @@ import type {
 } from "@/features/appointments/types/appointment.types";
 import { AppointmentStatusBadge } from "@/features/appointments/components/appointment-status-badge";
 import { formatDateTime, formatTime } from "@/lib/format";
+import { PageHeader } from "@/components/ui/page-header";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 const ACTIONS_BY_STATUS: Partial<
     Record<
@@ -97,11 +98,7 @@ export default function EmployeeAppointmentDetailPage() {
     }
 
     if (loading || !user || !isStaff(user)) {
-        return (
-            <main className="min-h-screen bg-neutral-950 text-white flex items-center justify-center">
-                <p className="text-neutral-400">Chargement...</p>
-            </main>
-        );
+        return <LoadingScreen />;
     }
 
     const actions = appointment
@@ -109,42 +106,34 @@ export default function EmployeeAppointmentDetailPage() {
         : [];
 
     return (
-        <main className="min-h-screen bg-neutral-950 text-white">
-            <header className="border-b border-white/10 bg-neutral-900">
-                <div className="mx-auto max-w-3xl px-6 py-5">
-                    <Link
-                        href="/employee/appointments"
-                        className="text-sm text-neutral-400 transition hover:text-white"
-                    >
-                        ← Rendez-vous du garage
-                    </Link>
-                    <h1 className="text-2xl font-bold">Fiche rendez-vous</h1>
-                </div>
-            </header>
+        <main className="flex-1">
+            <PageHeader
+                title="Fiche rendez-vous"
+                backHref="/employee/appointments"
+                backLabel="Planning du garage"
+            />
 
-            <section className="mx-auto max-w-3xl space-y-6 px-6 py-8">
-                {error && (
-                    <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-                        {error}
-                    </div>
-                )}
+            <section className="mx-auto max-w-3xl space-y-6 px-5 py-8 sm:px-6 sm:py-10">
+                {error && <div className="alert-error">{error}</div>}
 
                 {loadingAppointment ? (
-                    <p className="text-neutral-400">Chargement...</p>
+                    <div className="empty-state">Chargement...</div>
                 ) : !appointment ? (
-                    <p className="text-neutral-400">
+                    <div className="empty-state">
                         Ce rendez-vous est introuvable.
-                    </p>
+                    </div>
                 ) : (
                     <>
-                        <div className="rounded-2xl border border-white/10 bg-neutral-900 p-6">
+                        <div className="card relative overflow-hidden">
+                            <div className="absolute top-0 right-0 h-40 w-40 translate-x-1/3 -translate-y-1/2 rounded-full bg-accent/8 blur-3xl" />
                             <div className="flex flex-wrap items-start justify-between gap-4">
-                                <div>
-                                    <p className="text-xl font-semibold">
+                                <div className="relative">
+                                    <p className="eyebrow">Intervention</p>
+                                    <p className="mt-2 text-2xl font-semibold tracking-tight">
                                         {appointment.serviceName ??
                                             "Service non précisé"}
                                     </p>
-                                    <p className="mt-1 text-neutral-400">
+                                    <p className="mt-2 font-mono text-xs text-muted">
                                         {formatDateTime(appointment.startAt)} →{" "}
                                         {formatTime(appointment.endAt)}
                                     </p>
@@ -166,11 +155,11 @@ export default function EmployeeAppointmentDetailPage() {
                                                 )
                                             }
                                             disabled={updating}
-                                            className={`rounded-xl px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-60 ${
+                                            className={
                                                 action.destructive
-                                                    ? "border border-red-500/30 text-red-300 hover:bg-red-500/10"
-                                                    : "bg-white text-neutral-950 hover:bg-neutral-200"
-                                            }`}
+                                                    ? "btn-danger"
+                                                    : "btn-primary"
+                                            }
                                         >
                                             {action.label}
                                         </button>
@@ -179,8 +168,9 @@ export default function EmployeeAppointmentDetailPage() {
                             )}
                         </div>
 
-                        <div className="rounded-2xl border border-white/10 bg-neutral-900 p-6">
-                            <h2 className="font-semibold">Client</h2>
+                        <div className="card">
+                            <p className="section-title">Coordonnées</p>
+                            <h2 className="mt-2 text-lg font-semibold">Client</h2>
 
                             <div className="mt-4 grid gap-4 sm:grid-cols-2">
                                 <InfoField
@@ -198,8 +188,9 @@ export default function EmployeeAppointmentDetailPage() {
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-white/10 bg-neutral-900 p-6">
-                            <h2 className="font-semibold">Véhicule</h2>
+                        <div className="card">
+                            <p className="section-title">Dossier automobile</p>
+                            <h2 className="mt-2 text-lg font-semibold">Véhicule</h2>
 
                             <div className="mt-4 grid gap-4 sm:grid-cols-3">
                                 <InfoField
@@ -218,11 +209,12 @@ export default function EmployeeAppointmentDetailPage() {
                         </div>
 
                         {appointment.message && (
-                            <div className="rounded-2xl border border-white/10 bg-neutral-900 p-6">
-                                <h2 className="font-semibold">
+                            <div className="card">
+                                <p className="section-title">Note</p>
+                                <h2 className="mt-2 text-lg font-semibold">
                                     Message du client
                                 </h2>
-                                <p className="mt-3 whitespace-pre-line text-neutral-300">
+                                <p className="mt-4 whitespace-pre-line border-l-2 border-accent/40 pl-4 text-sm leading-6 text-muted">
                                     {appointment.message}
                                 </p>
                             </div>
@@ -242,9 +234,9 @@ function InfoField({
     value: string | null | undefined;
 }) {
     return (
-        <div className="rounded-xl border border-white/10 bg-neutral-950 p-4">
-            <p className="text-sm text-neutral-500">{label}</p>
-            <p className="mt-1">{value || "—"}</p>
+        <div className="surface-muted">
+            <p className="section-title">{label}</p>
+            <p className="mt-2 text-sm font-medium">{value || "—"}</p>
         </div>
     );
 }

@@ -10,19 +10,13 @@ import { LoadingScreen } from "@/components/ui/loading-screen";
 
 export default function DashboardPage() {
     const router = useRouter();
-    const { user, loading, logout } = useAuth();
+    const { user, loading } = useAuth();
 
     useEffect(() => {
         if (!loading && !user) {
             router.push("/login");
         }
     }, [loading, user, router]);
-
-    async function handleLogout() {
-        await logout();
-        router.push("/login");
-        router.refresh();
-    }
 
     if (loading) {
         return <LoadingScreen />;
@@ -33,46 +27,48 @@ export default function DashboardPage() {
     }
 
     return (
-        <main className="min-h-screen">
-            <PageHeader
-                title="Dashboard"
-                action={
-                    <button onClick={handleLogout} className="btn-ghost">
-                        Déconnexion
-                    </button>
-                }
-            />
+        <main className="flex-1">
+            <PageHeader title="Tableau de bord" />
 
-            <section className="mx-auto max-w-6xl space-y-10 px-6 py-10">
-                <div className="card">
-                    <p className="text-sm text-neutral-400">
-                        Connecté en tant que
-                    </p>
+            <section className="mx-auto max-w-6xl space-y-12 px-5 py-8 sm:px-6 sm:py-10">
+                <div className="card reveal relative overflow-hidden">
+                    <div className="absolute top-0 right-0 h-48 w-48 translate-x-1/3 -translate-y-1/2 rounded-full bg-accent/10 blur-3xl" />
+                    <div className="relative flex flex-col justify-between gap-8 md:flex-row md:items-end">
+                        <div>
+                            <p className="eyebrow">Espace personnel</p>
+                            <h2 className="mt-3 text-3xl font-semibold tracking-tight">
+                                Bonjour, {user.firstName}.
+                            </h2>
+                            <p className="mt-2 text-sm text-muted">
+                                Retrouvez vos informations et gérez vos demandes
+                                depuis cet espace.
+                            </p>
+                        </div>
 
-                    <h2 className="mt-1 text-2xl font-semibold tracking-tight">
-                        {user.firstName} {user.lastName}
-                    </h2>
+                        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-accent/25 bg-accent/5 px-3 py-1.5 text-xs font-medium text-accent">
+                            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+                            {ROLE_LABELS[user.role]}
+                        </div>
+                    </div>
 
-                    <div className="mt-6 grid gap-4 md:grid-cols-3">
-                        <div className="rounded-xl border border-white/10 bg-neutral-950/60 p-4">
-                            <p className="text-xs text-neutral-500">Email</p>
-                            <p className="mt-1 truncate text-sm">
+                    <div className="relative mt-8 grid gap-3 border-t border-line pt-6 md:grid-cols-3">
+                        <div className="surface-muted">
+                            <p className="section-title">Nom complet</p>
+                            <p className="mt-2 truncate text-sm font-medium">
+                                {user.firstName} {user.lastName}
+                            </p>
+                        </div>
+
+                        <div className="surface-muted">
+                            <p className="section-title">Email</p>
+                            <p className="mt-2 truncate text-sm font-medium">
                                 {user.email}
                             </p>
                         </div>
 
-                        <div className="rounded-xl border border-white/10 bg-neutral-950/60 p-4">
-                            <p className="text-xs text-neutral-500">Rôle</p>
-                            <p className="mt-1 text-sm">
-                                {ROLE_LABELS[user.role]}
-                            </p>
-                        </div>
-
-                        <div className="rounded-xl border border-white/10 bg-neutral-950/60 p-4">
-                            <p className="text-xs text-neutral-500">
-                                Identifiant
-                            </p>
-                            <p className="mt-1 truncate text-sm text-neutral-400">
+                        <div className="surface-muted">
+                            <p className="section-title">Identifiant</p>
+                            <p className="mt-2 truncate font-mono text-xs text-muted">
                                 {user.id}
                             </p>
                         </div>
@@ -80,47 +76,66 @@ export default function DashboardPage() {
                 </div>
 
                 <div>
-                    <h3 className="section-title">Mon espace</h3>
+                    <div className="flex items-end justify-between gap-4">
+                        <div>
+                            <p className="eyebrow">Accès rapide</p>
+                            <h3 className="mt-2 text-xl font-semibold tracking-tight">
+                                Mon espace
+                            </h3>
+                        </div>
+                        <span className="hidden font-mono text-[0.65rem] tracking-[0.12em] text-faint uppercase sm:block">
+                            Garage Jojo / Client
+                        </span>
+                    </div>
 
                     <div className="mt-4 grid gap-4 md:grid-cols-3">
                         <Link
                             href="/dashboard/appointments"
-                            className="card group transition hover:border-white/25"
+                            className="card-interactive group"
                         >
-                            <div className="flex items-center justify-between">
-                                <h3 className="font-semibold">Rendez-vous</h3>
+                            <div className="flex items-start justify-between">
+                                <span className="grid h-10 w-10 place-items-center rounded-lg border border-accent/25 bg-accent/8 font-mono text-xs text-accent">
+                                    RDV
+                                </span>
                                 <span
                                     aria-hidden
-                                    className="text-neutral-500 transition group-hover:translate-x-1 group-hover:text-white"
+                                    className="text-faint transition group-hover:translate-x-1 group-hover:text-accent"
                                 >
                                     →
                                 </span>
                             </div>
-                            <p className="mt-2 text-sm text-neutral-400">
-                                Prendre un rendez-vous et suivre tes demandes.
+                            <h3 className="mt-8 font-semibold">Rendez-vous</h3>
+                            <p className="mt-2 text-sm leading-6 text-muted">
+                                Prendre un rendez-vous et suivre vos demandes.
                             </p>
                         </Link>
 
-                        <div className="card opacity-60">
-                            <div className="flex items-center justify-between">
-                                <h3 className="font-semibold">Véhicules</h3>
-                                <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-neutral-500">
+                        <div className="card opacity-65">
+                            <div className="flex items-start justify-between">
+                                <span className="grid h-10 w-10 place-items-center rounded-lg border border-line bg-surface-soft font-mono text-xs text-faint">
+                                    AUTO
+                                </span>
+                                <span className="rounded-full border border-line px-2 py-0.5 font-mono text-[0.6rem] text-faint uppercase">
                                     Bientôt
                                 </span>
                             </div>
-                            <p className="mt-2 text-sm text-neutral-400">
-                                Véhicules d&apos;occasion du garage.
+                            <h3 className="mt-8 font-semibold">Véhicules</h3>
+                            <p className="mt-2 text-sm leading-6 text-muted">
+                                Véhicules d&apos;occasion et dossier automobile.
                             </p>
                         </div>
 
-                        <div className="card opacity-60">
-                            <div className="flex items-center justify-between">
-                                <h3 className="font-semibold">Factures</h3>
-                                <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs text-neutral-500">
+                        <div className="card opacity-65">
+                            <div className="flex items-start justify-between">
+                                <span className="grid h-10 w-10 place-items-center rounded-lg border border-line bg-surface-soft font-mono text-xs text-faint">
+                                    DOC
+                                </span>
+                                <span className="rounded-full border border-line px-2 py-0.5 font-mono text-[0.6rem] text-faint uppercase">
                                     Bientôt
                                 </span>
                             </div>
-                            <p className="mt-2 text-sm text-neutral-400">
+                            <h3 className="mt-8 font-semibold">Factures</h3>
+                            <p className="mt-2 text-sm leading-6 text-muted">
                                 Documents et factures.
                             </p>
                         </div>
@@ -129,25 +144,31 @@ export default function DashboardPage() {
 
                 {isStaff(user) && (
                     <div>
-                        <h3 className="section-title">Espace employé</h3>
+                        <p className="eyebrow">Outils internes</p>
+                        <h3 className="mt-2 text-xl font-semibold tracking-tight">
+                            Espace employé
+                        </h3>
 
                         <div className="mt-4 grid gap-4 md:grid-cols-3">
                             <Link
                                 href="/employee/appointments"
-                                className="card group transition hover:border-white/25"
+                                className="card-interactive group"
                             >
-                                <div className="flex items-center justify-between">
-                                    <h3 className="font-semibold">
-                                        Rendez-vous du garage
-                                    </h3>
+                                <div className="flex items-start justify-between">
+                                    <span className="grid h-10 w-10 place-items-center rounded-lg border border-accent/25 bg-accent/8 font-mono text-xs text-accent">
+                                        PRO
+                                    </span>
                                     <span
                                         aria-hidden
-                                        className="text-neutral-500 transition group-hover:translate-x-1 group-hover:text-white"
+                                        className="text-faint transition group-hover:translate-x-1 group-hover:text-accent"
                                     >
                                         →
                                     </span>
                                 </div>
-                                <p className="mt-2 text-sm text-neutral-400">
+                                <h3 className="mt-8 font-semibold">
+                                    Planning du garage
+                                </h3>
+                                <p className="mt-2 text-sm leading-6 text-muted">
                                     Confirmer, annuler et clôturer les
                                     rendez-vous des clients.
                                 </p>

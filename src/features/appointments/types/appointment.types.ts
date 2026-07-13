@@ -46,5 +46,7 @@ export type AvailabilitySlot = {
 
 export type Availability = {
     date: string;
+    serviceId: string | null;
+    durationMinutes: number;
     slots: AvailabilitySlot[];
 };

@@ -4,7 +4,6 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
-import { Brand } from "@/components/ui/brand";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -41,16 +40,17 @@ export default function RegisterPage() {
     }
 
     return (
-        <main className="flex min-h-screen items-center justify-center px-4 py-12">
-            <div className="w-full max-w-md">
-                <div className="card p-8">
+        <main className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6">
+            <div className="reveal grid w-full max-w-5xl overflow-hidden rounded-3xl border border-line bg-surface shadow-[0_30px_90px_rgba(0,0,0,0.32)] lg:grid-cols-[1.05fr_0.95fr]">
+                <section className="p-7 sm:p-10 lg:p-12">
                     <div className="mb-8">
-                        <Brand />
-                        <h1 className="mt-4 text-2xl font-semibold tracking-tight">
-                            Créer un compte
+                        <p className="eyebrow">Nouveau client</p>
+                        <h1 className="mt-3 text-3xl font-semibold tracking-tight">
+                            Créez votre espace.
                         </h1>
-                        <p className="mt-1 text-sm text-neutral-400">
-                            Crée ton espace client en une minute.
+                        <p className="mt-2 text-sm leading-6 text-muted">
+                            Quelques informations suffisent pour prendre votre
+                            premier rendez-vous.
                         </p>
                     </div>
 
@@ -113,19 +113,49 @@ export default function RegisterPage() {
                             className="btn-primary w-full py-3"
                         >
                             {loading ? "Création..." : "Créer mon compte"}
+                            {!loading && <span aria-hidden>→</span>}
                         </button>
                     </form>
-                </div>
 
-                <p className="mt-6 text-center text-sm text-neutral-400">
+                    <p className="mt-7 text-center text-sm text-muted">
                     Déjà un compte ?{" "}
                     <Link
                         href="/login"
-                        className="font-medium text-white underline-offset-4 hover:underline"
+                            className="text-link"
                     >
                         Se connecter
                     </Link>
                 </p>
+                </section>
+
+                <aside className="relative hidden overflow-hidden border-l border-line bg-surface-soft p-10 lg:flex lg:flex-col lg:justify-between">
+                    <div className="absolute top-0 right-0 h-64 w-64 translate-x-1/3 -translate-y-1/3 rounded-full bg-accent/10 blur-3xl" />
+                    <p className="eyebrow relative">Garage Jojo / Bienvenue</p>
+
+                    <div className="relative space-y-3">
+                        {[
+                            ["01", "Choisissez une prestation"],
+                            ["02", "Réservez votre créneau"],
+                            ["03", "Suivez votre rendez-vous"],
+                        ].map(([number, label]) => (
+                            <div
+                                key={number}
+                                className="flex items-center gap-4 rounded-xl border border-line bg-surface p-4"
+                            >
+                                <span className="font-mono text-xs text-accent">
+                                    {number}
+                                </span>
+                                <span className="text-sm font-medium">
+                                    {label}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+
+                    <p className="relative font-mono text-[0.65rem] tracking-[0.12em] text-faint uppercase">
+                        Votre temps compte aussi
+                    </p>
+                </aside>
             </div>
         </main>
     );
