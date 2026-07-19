@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Brand } from "@/components/ui/brand";
-import { isStaff } from "@/features/auth/lib/roles";
+import { isAdmin, isStaff } from "@/features/auth/lib/roles";
 
 type NavItem = {
     href: string;
@@ -38,6 +38,22 @@ export function SiteHeader() {
                         {
                             href: "/employee/appointments",
                             label: "Planning atelier",
+                        },
+                        {
+                            href: "/employee/customers",
+                            label: "Clients",
+                        },
+                        {
+                            href: "/employee/services",
+                            label: "Prestations",
+                        },
+                    ]
+                  : []),
+              ...(isAdmin(user)
+                  ? [
+                        {
+                            href: "/admin/users",
+                            label: "Utilisateurs",
                         },
                     ]
                   : []),

@@ -1,5 +1,22 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
 
+export class ApiError extends Error {
+    readonly status: number;
+
+    constructor(message: string, status: number) {
+        super(message);
+        this.name = "ApiError";
+        this.status = status;
+    }
+}
+
+export function isApiError(error: unknown, status?: number): error is ApiError {
+    return (
+        error instanceof ApiError &&
+        (status === undefined || error.status === status)
+    );
+}
+
 type ApiOptions = RequestInit & {
     skipJson?: boolean;
 };
@@ -34,7 +51,7 @@ export async function apiFetch<T>(
             // pas de body JSON
         }
 
-        throw new Error(message);
+        throw new ApiError(message, response.status);
     }
 
     if (skipJson || response.status === 204) {

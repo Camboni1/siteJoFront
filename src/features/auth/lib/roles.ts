@@ -9,3 +9,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 export function isStaff(user: AuthUser | null) {
     return user?.role === "ROLE_EMPLOYEE" || user?.role === "ROLE_ADMIN";
 }
+
+export function isAdmin(user: AuthUser | null) {
+    return user?.role === "ROLE_ADMIN";
+}

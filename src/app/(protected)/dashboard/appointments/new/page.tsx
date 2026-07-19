@@ -10,7 +10,7 @@ import type {
     AvailabilitySlot,
 } from "@/features/appointments/types/appointment.types";
 import type { GarageService } from "@/features/garage-services/types/garage-service.types";
-import { formatTime } from "@/lib/format";
+import { formatDuration, formatTime } from "@/lib/format";
 import { PageHeader } from "@/components/ui/page-header";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 
@@ -20,19 +20,6 @@ function toDateInputValue(date: Date) {
     const day = String(date.getDate()).padStart(2, "0");
 
     return `${year}-${month}-${day}`;
-}
-
-function formatDuration(minutes: number) {
-    if (minutes < 60) {
-        return `${minutes} min`;
-    }
-
-    const hours = Math.floor(minutes / 60);
-    const remainingMinutes = minutes % 60;
-
-    return remainingMinutes === 0
-        ? `${hours} h`
-        : `${hours} h ${remainingMinutes} min`;
 }
 
 export default function NewAppointmentPage() {
