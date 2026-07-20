@@ -22,6 +22,9 @@ export function InvoiceLinesTable({ lines, currency }: InvoiceLinesTableProps) {
     return (
         <div className="overflow-x-auto rounded-2xl border border-line bg-surface shadow-[0_18px_50px_rgba(0,0,0,0.16)]">
             <table className="w-full text-left text-sm">
+                <caption className="sr-only">
+                    Lignes de la facture
+                </caption>
                 <thead className="border-b border-line bg-surface-soft font-mono text-[0.65rem] tracking-wider text-faint uppercase">
                     <tr>
                         <th scope="col" className="px-4 py-4 font-semibold">

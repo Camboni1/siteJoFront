@@ -49,6 +49,11 @@ export default function EditInvoicePage() {
                     return;
                 }
 
+                if (isApiError(error, 403)) {
+                    router.push("/dashboard");
+                    return;
+                }
+
                 setError(
                     error instanceof Error
                         ? error.message
@@ -75,6 +80,11 @@ export default function EditInvoicePage() {
         } catch (error) {
             if (isApiError(error, 401)) {
                 router.push("/login");
+                return;
+            }
+
+            if (isApiError(error, 403)) {
+                router.push("/dashboard");
                 return;
             }
 

@@ -4,7 +4,12 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
-import { isAdmin, isStaff, ROLE_LABELS } from "@/features/auth/lib/roles";
+import {
+    isAdmin,
+    isCustomer,
+    isStaff,
+    ROLE_LABELS,
+} from "@/features/auth/lib/roles";
 import { PageHeader } from "@/components/ui/page-header";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 
@@ -84,7 +89,7 @@ export default function DashboardPage() {
                             </h3>
                         </div>
                         <span className="hidden font-mono text-[0.65rem] tracking-[0.12em] text-faint uppercase sm:block">
-                            CamboGarage / Client
+                            CamboGarage / {isStaff(user) ? "Équipe" : "Client"}
                         </span>
                     </div>
 
@@ -128,20 +133,31 @@ export default function DashboardPage() {
                             </p>
                         </Link>
 
-                        <div className="card opacity-65">
-                            <div className="flex items-start justify-between">
-                                <span className="grid h-10 w-10 place-items-center rounded-lg border border-line bg-surface-soft font-mono text-xs text-faint">
-                                    DOC
-                                </span>
-                                <span className="rounded-full border border-line px-2 py-0.5 font-mono text-[0.6rem] text-faint uppercase">
-                                    Bientôt
-                                </span>
-                            </div>
-                            <h3 className="mt-8 font-semibold">Factures</h3>
-                            <p className="mt-2 text-sm leading-6 text-muted">
-                                Documents et factures.
-                            </p>
-                        </div>
+                        {isCustomer(user) && (
+                            <Link
+                                href="/dashboard/invoices"
+                                className="card-interactive group"
+                            >
+                                <div className="flex items-start justify-between">
+                                    <span className="grid h-10 w-10 place-items-center rounded-lg border border-accent/25 bg-accent/8 font-mono text-xs text-accent">
+                                        DOC
+                                    </span>
+                                    <span
+                                        aria-hidden
+                                        className="text-faint transition group-hover:translate-x-1 group-hover:text-accent"
+                                    >
+                                        →
+                                    </span>
+                                </div>
+                                <h3 className="mt-8 font-semibold">
+                                    Mes factures
+                                </h3>
+                                <p className="mt-2 text-sm leading-6 text-muted">
+                                    Consulter et télécharger vos factures
+                                    émises.
+                                </p>
+                            </Link>
+                        )}
                     </div>
                 </div>
 
@@ -153,6 +169,30 @@ export default function DashboardPage() {
                         </h3>
 
                         <div className="mt-4 grid gap-4 md:grid-cols-3">
+                            <Link
+                                href="/employee/invoices"
+                                className="card-interactive group"
+                            >
+                                <div className="flex items-start justify-between">
+                                    <span className="grid h-10 w-10 place-items-center rounded-lg border border-accent/25 bg-accent/8 font-mono text-xs text-accent">
+                                        FAC
+                                    </span>
+                                    <span
+                                        aria-hidden
+                                        className="text-faint transition group-hover:translate-x-1 group-hover:text-accent"
+                                    >
+                                        →
+                                    </span>
+                                </div>
+                                <h3 className="mt-8 font-semibold">
+                                    Factures
+                                </h3>
+                                <p className="mt-2 text-sm leading-6 text-muted">
+                                    Créer, émettre et suivre les factures du
+                                    garage.
+                                </p>
+                            </Link>
+
                             <Link
                                 href="/employee/appointments"
                                 className="card-interactive group"

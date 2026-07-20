@@ -317,6 +317,11 @@ export function InvoiceForm({
                     return;
                 }
 
+                if (isApiError(error, 403)) {
+                    router.push("/dashboard");
+                    return;
+                }
+
                 setCustomers([]);
                 setCustomersError(
                     error instanceof Error

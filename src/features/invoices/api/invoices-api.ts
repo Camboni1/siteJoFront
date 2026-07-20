@@ -115,6 +115,8 @@ function saveBlob(blob: Blob, filename: string) {
         link.click();
     } finally {
         link.remove();
-        URL.revokeObjectURL(url);
+        // Laisse le navigateur commencer la lecture du Blob avant de libérer
+        // l'URL temporaire (la révocation synchrone interrompt certains clients).
+        window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
     }
 }

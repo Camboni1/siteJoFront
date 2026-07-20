@@ -99,6 +99,11 @@ export default function EmployeeInvoiceDetailPage() {
                     return;
                 }
 
+                if (isApiError(error, 403)) {
+                    router.push("/dashboard");
+                    return;
+                }
+
                 setError(
                     error instanceof Error
                         ? error.message
@@ -141,6 +146,11 @@ export default function EmployeeInvoiceDetailPage() {
         } catch (error) {
             if (isApiError(error, 401)) {
                 router.push("/login");
+                return;
+            }
+
+            if (isApiError(error, 403)) {
+                router.push("/dashboard");
                 return;
             }
 

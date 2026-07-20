@@ -29,6 +29,11 @@ export function InvoicePdfButton({
                 return;
             }
 
+            if (isApiError(error, 403)) {
+                router.push("/dashboard");
+                return;
+            }
+
             setError(
                 error instanceof Error
                     ? error.message

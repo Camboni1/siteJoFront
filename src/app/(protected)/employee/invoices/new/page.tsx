@@ -41,6 +41,11 @@ export default function NewInvoicePage() {
                 return;
             }
 
+            if (isApiError(error, 403)) {
+                router.push("/dashboard");
+                return;
+            }
+
             throw error;
         }
     }

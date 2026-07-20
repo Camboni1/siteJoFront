@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/providers/auth-provider";
 import { Brand } from "@/components/ui/brand";
-import { isAdmin, isStaff } from "@/features/auth/lib/roles";
+import { isAdmin, isCustomer, isStaff } from "@/features/auth/lib/roles";
 
 type NavItem = {
     href: string;
@@ -35,8 +35,20 @@ export function SiteHeader() {
           ? [
               { href: "/vehicles", label: "Occasions" },
               ...CUSTOMER_NAV,
+              ...(isCustomer(user)
+                  ? [
+                        {
+                            href: "/dashboard/invoices",
+                            label: "Mes factures",
+                        },
+                    ]
+                  : []),
               ...(isStaff(user)
                   ? [
+                        {
+                            href: "/employee/invoices",
+                            label: "Factures",
+                        },
                         {
                             href: "/employee/appointments",
                             label: "Planning atelier",

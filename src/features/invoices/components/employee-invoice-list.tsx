@@ -147,6 +147,11 @@ export function EmployeeInvoiceList() {
                     return;
                 }
 
+                if (isApiError(error, 403)) {
+                    router.push("/dashboard");
+                    return;
+                }
+
                 // Le filtre client devient indisponible mais la liste reste utilisable.
                 setCustomers([]);
             });
@@ -207,6 +212,11 @@ function EmployeeInvoiceListContent({
 
                 if (isApiError(requestError, 401)) {
                     router.push("/login");
+                    return;
+                }
+
+                if (isApiError(requestError, 403)) {
+                    router.push("/dashboard");
                     return;
                 }
 
@@ -365,7 +375,7 @@ function EmployeeInvoiceListContent({
                                         event.target.value
                                     )
                                 }
-                                placeholder="FAC-2026-000001"
+                                placeholder="Numéro de facture"
                             />
                         </div>
 
@@ -470,6 +480,9 @@ function EmployeeInvoiceListContent({
 
                         <div className="overflow-x-auto rounded-2xl border border-line bg-surface shadow-[0_18px_50px_rgba(0,0,0,0.16)]">
                             <table className="w-full text-left text-sm">
+                                <caption className="sr-only">
+                                    Liste des factures sortantes
+                                </caption>
                                 <thead className="border-b border-line bg-surface-soft font-mono text-[0.65rem] tracking-wider text-faint uppercase">
                                     <tr>
                                         <th
