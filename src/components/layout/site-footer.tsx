@@ -28,6 +28,12 @@ export function SiteFooter() {
                             Prestations
                         </Link>
                         <Link
+                            href="/vehicles"
+                            className="text-muted transition hover:text-accent"
+                        >
+                            Véhicules d’occasion
+                        </Link>
+                        <Link
                             href="/dashboard/appointments/new"
                             className="text-muted transition hover:text-accent"
                         >

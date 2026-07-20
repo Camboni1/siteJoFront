@@ -14,6 +14,7 @@ type NavItem = {
 
 const PUBLIC_NAV: NavItem[] = [
     { href: "/", label: "Accueil", exact: true },
+    { href: "/vehicles", label: "Occasions" },
     { href: "/#services", label: "Prestations" },
     { href: "/#atelier", label: "L’atelier" },
 ];
@@ -32,6 +33,7 @@ export function SiteHeader() {
         ? []
         : user
           ? [
+              { href: "/vehicles", label: "Occasions" },
               ...CUSTOMER_NAV,
               ...(isStaff(user)
                   ? [
@@ -46,6 +48,10 @@ export function SiteHeader() {
                         {
                             href: "/employee/services",
                             label: "Prestations",
+                        },
+                        {
+                            href: "/employee/vehicles",
+                            label: "Véhicules",
                         },
                     ]
                   : []),

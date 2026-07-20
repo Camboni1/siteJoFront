@@ -24,6 +24,10 @@ const currencyFormatter = new Intl.NumberFormat("fr-BE", {
     currency: "EUR",
 });
 
+const integerFormatter = new Intl.NumberFormat("fr-BE", {
+    maximumFractionDigits: 0,
+});
+
 export function formatDuration(minutes: number) {
     if (minutes < 60) {
         return `${minutes} min`;
@@ -39,6 +43,10 @@ export function formatDuration(minutes: number) {
 
 export function formatPrice(amount: number) {
     return currencyFormatter.format(amount);
+}
+
+export function formatMileage(mileage: number) {
+    return `${integerFormatter.format(mileage)} km`;
 }
 
 export function formatDateTime(isoDate: string) {

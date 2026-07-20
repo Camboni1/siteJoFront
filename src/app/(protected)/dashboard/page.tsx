@@ -110,20 +110,23 @@ export default function DashboardPage() {
                             </p>
                         </Link>
 
-                        <div className="card opacity-65">
+                        <Link href="/vehicles" className="card-interactive group">
                             <div className="flex items-start justify-between">
-                                <span className="grid h-10 w-10 place-items-center rounded-lg border border-line bg-surface-soft font-mono text-xs text-faint">
+                                <span className="grid h-10 w-10 place-items-center rounded-lg border border-accent/25 bg-accent/8 font-mono text-xs text-accent">
                                     AUTO
                                 </span>
-                                <span className="rounded-full border border-line px-2 py-0.5 font-mono text-[0.6rem] text-faint uppercase">
-                                    Bientôt
+                                <span
+                                    aria-hidden
+                                    className="text-faint transition group-hover:translate-x-1 group-hover:text-accent"
+                                >
+                                    →
                                 </span>
                             </div>
                             <h3 className="mt-8 font-semibold">Véhicules</h3>
                             <p className="mt-2 text-sm leading-6 text-muted">
-                                Véhicules d&apos;occasion et dossier automobile.
+                                Parcourir les véhicules d&apos;occasion du garage.
                             </p>
-                        </div>
+                        </Link>
 
                         <div className="card opacity-65">
                             <div className="flex items-start justify-between">
@@ -217,6 +220,30 @@ export default function DashboardPage() {
                                 <p className="mt-2 text-sm leading-6 text-muted">
                                     Gérer le catalogue, les prix et les durées
                                     des interventions.
+                                </p>
+                            </Link>
+
+                            <Link
+                                href="/employee/vehicles"
+                                className="card-interactive group"
+                            >
+                                <div className="flex items-start justify-between">
+                                    <span className="grid h-10 w-10 place-items-center rounded-lg border border-accent/25 bg-accent/8 font-mono text-xs text-accent">
+                                        VO
+                                    </span>
+                                    <span
+                                        aria-hidden
+                                        className="text-faint transition group-hover:translate-x-1 group-hover:text-accent"
+                                    >
+                                        →
+                                    </span>
+                                </div>
+                                <h3 className="mt-8 font-semibold">
+                                    Véhicules
+                                </h3>
+                                <p className="mt-2 text-sm leading-6 text-muted">
+                                    Gérer le stock, les statuts et les images des
+                                    véhicules d&apos;occasion.
                                 </p>
                             </Link>
 
