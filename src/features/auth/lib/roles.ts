@@ -13,3 +13,7 @@ export function isStaff(user: AuthUser | null) {
 export function isAdmin(user: AuthUser | null) {
     return user?.role === "ROLE_ADMIN";
 }
+
+export function isCustomer(user: AuthUser | null) {
+    return user?.role === "ROLE_CUSTOMER";
+}

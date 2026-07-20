@@ -24,6 +24,14 @@ const currencyFormatter = new Intl.NumberFormat("fr-BE", {
     currency: "EUR",
 });
 
+const shortDateFormatter = new Intl.DateTimeFormat("fr-BE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+});
+
+const currencyFormatters = new Map<string, Intl.NumberFormat>();
+
 const integerFormatter = new Intl.NumberFormat("fr-BE", {
     maximumFractionDigits: 0,
 });
@@ -45,6 +53,26 @@ export function formatPrice(amount: number) {
     return currencyFormatter.format(amount);
 }
 
+export function formatCurrency(amount: number, currency: string) {
+    let formatter = currencyFormatters.get(currency);
+
+    if (!formatter) {
+        try {
+            formatter = new Intl.NumberFormat("fr-BE", {
+                style: "currency",
+                currency,
+            });
+        } catch {
+            // Devise inconnue d'Intl : repli lisible sans planter l'affichage.
+            return `${amount.toFixed(2)} ${currency}`;
+        }
+
+        currencyFormatters.set(currency, formatter);
+    }
+
+    return formatter.format(amount);
+}
+
 export function formatMileage(mileage: number) {
     return `${integerFormatter.format(mileage)} km`;
 }
@@ -55,6 +83,10 @@ export function formatDateTime(isoDate: string) {
 
 export function formatDate(isoDate: string) {
     return dateFormatter.format(new Date(isoDate));
+}
+
+export function formatDateShort(isoDate: string) {
+    return shortDateFormatter.format(new Date(isoDate));
 }
 
 export function formatTime(isoDate: string) {
