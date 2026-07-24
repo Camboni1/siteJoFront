@@ -1,4 +1,5 @@
 import { apiFetch, apiFetchBlob } from "@/lib/api";
+import { saveBlob } from "@/lib/download";
 import type {
     CreateInvoiceRequest,
     EmployeeInvoiceFilters,
@@ -101,22 +102,4 @@ function fallbackPdfName(invoiceNumber: string) {
     const safeNumber = invoiceNumber.replace(/[^A-Za-z0-9_-]/g, "-");
 
     return `facture-${safeNumber || "sans-numero"}.pdf`;
-}
-
-function saveBlob(blob: Blob, filename: string) {
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-
-    try {
-        link.click();
-    } finally {
-        link.remove();
-        // Laisse le navigateur commencer la lecture du Blob avant de libérer
-        // l'URL temporaire (la révocation synchrone interrompt certains clients).
-        window.setTimeout(() => URL.revokeObjectURL(url), 1_000);
-    }
 }

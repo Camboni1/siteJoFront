@@ -17,6 +17,7 @@ import { InvoiceParties } from "@/features/invoices/components/invoice-parties";
 import { InvoiceLinesTable } from "@/features/invoices/components/invoice-lines-table";
 import { InvoiceTotalsSummary } from "@/features/invoices/components/invoice-totals-summary";
 import { InvoicePdfButton } from "@/features/invoices/components/invoice-pdf-button";
+import { OdooIntegrationPanel } from "@/features/invoices/components/odoo-integration-panel";
 import { PageHeader } from "@/components/ui/page-header";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 
@@ -272,6 +273,13 @@ export default function EmployeeInvoiceDetailPage() {
                         </div>
 
                         <InvoiceTotalsSummary invoice={invoice} />
+
+                        {invoice.direction === "OUTGOING" && (
+                            <OdooIntegrationPanel
+                                invoiceId={invoice.id}
+                                canManage={isStaff(user)}
+                            />
+                        )}
 
                         {invoice.notes && (
                             <div className="card">
