@@ -1,6 +1,9 @@
 import { apiFetch, apiFetchBlob } from "@/lib/api";
 import { saveBlob } from "@/lib/download";
-import type { OdooInvoiceIntegrationResponse } from "@/features/invoices/types/odoo-invoice.types";
+import type {
+    OdooInvoiceIntegrationResponse,
+    OdooPeppolReadiness,
+} from "@/features/invoices/types/odoo-invoice.types";
 
 // Client dédié à l'intégration Odoo des factures sortantes.
 // L'URL du backend, les cookies (`credentials: "include"`) et la gestion
@@ -33,6 +36,27 @@ export function postInvoiceToOdoo(invoiceId: string) {
 export function refreshOdooInvoice(invoiceId: string) {
     return apiFetch<OdooInvoiceIntegrationResponse>(
         `${odooBasePath(invoiceId)}/refresh`,
+        { method: "POST" }
+    );
+}
+
+export function getPeppolReadiness(invoiceId: string) {
+    return apiFetch<OdooPeppolReadiness>(
+        `${odooBasePath(invoiceId)}/peppol-readiness`,
+        { method: "GET" }
+    );
+}
+
+export function sendInvoiceViaPeppol(invoiceId: string) {
+    return apiFetch<OdooInvoiceIntegrationResponse>(
+        `${odooBasePath(invoiceId)}/peppol`,
+        { method: "POST" }
+    );
+}
+
+export function refreshPeppolStatus(invoiceId: string) {
+    return apiFetch<OdooInvoiceIntegrationResponse>(
+        `${odooBasePath(invoiceId)}/peppol/refresh`,
         { method: "POST" }
     );
 }

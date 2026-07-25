@@ -66,3 +66,15 @@ export interface OdooInvoiceIntegrationResponse {
     canPost: boolean;
     canDownloadOfficialPdf: boolean;
 }
+
+export interface OdooPeppolReadiness {
+    featureEnabled: boolean;
+    environment: string;
+    invoicePosted: boolean;
+    companyReady: boolean;
+    customerReady: boolean;
+    customerParticipantIdentifierPresent: boolean;
+    documentReady: boolean;
+    canSend: boolean;
+    blockingReasons: string[];
+}

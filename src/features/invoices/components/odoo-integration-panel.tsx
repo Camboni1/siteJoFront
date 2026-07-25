@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 import { useOdooInvoiceIntegration } from "@/features/invoices/hooks/use-odoo-invoice-integration";
 import { OdooStatusBadge } from "@/features/invoices/components/odoo-status-badge";
@@ -17,6 +17,8 @@ import {
 } from "@/features/invoices/lib/odoo-invoice-status";
 import type { OdooErrorInfo } from "@/features/invoices/lib/odoo-error";
 import type { OdooInvoiceIntegrationResponse } from "@/features/invoices/types/odoo-invoice.types";
+import type { OdooPeppolReadiness } from "@/features/invoices/types/odoo-invoice.types";
+import { getPeppolReadiness } from "@/features/invoices/api/odoo-invoices-api";
 
 type OdooIntegrationPanelProps = {
     invoiceId: string;
@@ -87,6 +89,7 @@ function OdooIntegrationPanelContent({ invoiceId }: { invoiceId: string }) {
                 </div>
             ) : state ? (
                 <OdooPanelBody
+                    invoiceId={invoiceId}
                     state={state}
                     pending={pending}
                     actionError={actionError}
@@ -106,6 +109,7 @@ function OdooIntegrationPanelContent({ invoiceId }: { invoiceId: string }) {
 }
 
 type OdooPanelBodyProps = {
+    invoiceId: string;
     state: OdooInvoiceIntegrationResponse;
     pending: "sync" | "post" | "refresh" | "download" | null;
     actionError: OdooErrorInfo | null;
@@ -117,6 +121,7 @@ type OdooPanelBodyProps = {
 };
 
 function OdooPanelBody({
+    invoiceId,
     state,
     pending,
     actionError,
@@ -126,6 +131,21 @@ function OdooPanelBody({
     onRefresh,
     onDownloadPdf,
 }: OdooPanelBodyProps) {
+    const [peppolReadiness, setPeppolReadiness] =
+        useState<OdooPeppolReadiness | null>(null);
+    useEffect(() => {
+        let current = true;
+        Promise.resolve(getPeppolReadiness(invoiceId))
+            .then((readiness) => {
+                if (current && readiness) setPeppolReadiness(readiness);
+            })
+            .catch(() => {
+                if (current) setPeppolReadiness(null);
+            });
+        return () => {
+            current = false;
+        };
+    }, [invoiceId]);
     const currency = state.currencyCode ?? "EUR";
     const activeOperation = state.activeOperation;
     const busy = pending !== null;
@@ -220,6 +240,61 @@ function OdooPanelBody({
                     />
                 </StatusItem>
             </div>
+
+            <section
+                className="rounded-xl border border-line bg-surface-muted p-4"
+                aria-labelledby="peppol-readiness-title"
+            >
+                <h3 id="peppol-readiness-title" className="font-semibold">
+                    Peppol — environnement de test
+                </h3>
+                {!peppolReadiness ? (
+                    <p className="mt-2 text-sm text-muted">
+                        Préparation Peppol indisponible.
+                    </p>
+                ) : (
+                    <div className="mt-3 space-y-3 text-sm">
+                        <p>
+                            Environnement :{" "}
+                            <strong>
+                                {peppolReadiness.environment === "sandbox"
+                                    ? "Test"
+                                    : "Interdit"}
+                            </strong>
+                        </p>
+                        {!peppolReadiness.featureEnabled && (
+                            <p className="text-amber-300">
+                                Envoi Peppol désactivé
+                            </p>
+                        )}
+                        <p>
+                            Société :{" "}
+                            {peppolReadiness.companyReady ? "prête" : "non prête"}
+                            {" · "}Client :{" "}
+                            {peppolReadiness.customerReady ? "prêt" : "non prêt"}
+                            {" · "}Document :{" "}
+                            {peppolReadiness.documentReady ? "prêt" : "non prêt"}
+                        </p>
+                        {peppolReadiness.blockingReasons.length > 0 && (
+                            <ul className="list-disc space-y-1 pl-5 text-muted">
+                                {peppolReadiness.blockingReasons.map((reason) => (
+                                    <li key={reason}>{peppolReason(reason)}</li>
+                                ))}
+                            </ul>
+                        )}
+                        {peppolReadiness.canSend &&
+                            peppolReadiness.featureEnabled &&
+                            peppolReadiness.environment === "sandbox" &&
+                            isPosted &&
+                            peppolReadiness.customerReady &&
+                            peppolReadiness.companyReady && (
+                                <button type="button" className="btn-primary">
+                                    Envoyer via Peppol — environnement de test
+                                </button>
+                            )}
+                    </div>
+                )}
+            </section>
 
             <div className="grid gap-3 border-t border-line pt-6 sm:grid-cols-2 lg:grid-cols-3">
                 <DetailItem
@@ -431,4 +506,19 @@ function amountOrDash(value: number | null, currency: string) {
 
 function dateOrDash(isoDate: string | null) {
     return isoDate ? formatDateTime(isoDate) : "—";
+}
+
+function peppolReason(code: string) {
+    const labels: Record<string, string> = {
+        PEPPOL_DISABLED: "L’envoi est désactivé.",
+        PEPPOL_ENVIRONMENT_NOT_ALLOWED: "L’environnement n’est pas autorisé.",
+        PEPPOL_COMPANY_NOT_READY: "La société n’est pas prête.",
+        PEPPOL_CUSTOMER_NOT_READY: "Le client n’est pas prêt.",
+        PEPPOL_INVOICE_NOT_POSTED: "La facture n’est pas comptabilisée.",
+        PEPPOL_DOCUMENT_NOT_READY: "Le document électronique n’est pas prêt.",
+        PEPPOL_OPERATION_IN_PROGRESS: "Une opération est déjà en cours.",
+        PEPPOL_ALREADY_SENT: "La facture a déjà été envoyée.",
+        PEPPOL_UNAVAILABLE: "Aucun transport sandbox autorisé n’est disponible.",
+    };
+    return labels[code] ?? "La préparation Peppol est bloquée.";
 }
