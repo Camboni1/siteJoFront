@@ -131,8 +131,13 @@ function OdooPanelBody({
     const busy = pending !== null;
     const operationActive = activeOperation !== null;
     const mutationsDisabled = busy || operationActive;
-    const notSyncedYet =
-        state.syncStatus === "NOT_SYNCED" && state.odooInvoiceId === null;
+    // Liaison Odoo établie = facture Odoo créée ET au moins une synchro réussie.
+    // Source de vérité pour distinguer « jamais synchronisée » d'une facture déjà
+    // liée dont la dernière tentative a éventuellement échoué (cf. correctif backend).
+    const hasOdooLink =
+        state.odooInvoiceId !== null && state.lastSuccessfulSyncAt !== null;
+    const isPosted = state.accountingStatus === "POSTED";
+    const notSyncedYet = !hasOdooLink && state.syncStatus === "NOT_SYNCED";
 
     return (
         <div className="mt-4 space-y-6">
@@ -157,6 +162,21 @@ function OdooPanelBody({
             {notSyncedYet && !operationActive && (
                 <p className="text-sm text-muted">
                     Cette facture n&apos;est pas encore synchronisée avec Odoo.
+                </p>
+            )}
+
+            {isPosted && hasOdooLink && !operationActive && (
+                <p
+                    className="rounded-xl border border-emerald-500/30 bg-emerald-500/8 px-4 py-3 text-sm text-emerald-300"
+                    role="status"
+                >
+                    Cette facture est déjà comptabilisée dans Odoo
+                    {state.accountingNumber
+                        ? ` (n° ${state.accountingNumber})`
+                        : ""}
+                    . Une resynchronisation n&apos;est en général pas nécessaire ;
+                    utilisez «&nbsp;Actualiser les statuts&nbsp;» ou téléchargez le
+                    PDF officiel.
                 </p>
             )}
 
@@ -280,6 +300,13 @@ function OdooPanelBody({
                     <div className="alert-error" role="alert">
                         {actionError.message}
                     </div>
+                    {hasOdooLink && (
+                        <p className="text-xs text-muted">
+                            Les informations déjà synchronisées avec Odoo sont
+                            conservées. Vous pouvez réessayer une fois Odoo de
+                            nouveau disponible.
+                        </p>
+                    )}
                     <RequestIdHint requestId={actionError.requestId} />
                 </div>
             )}
@@ -287,13 +314,20 @@ function OdooPanelBody({
             <div className="flex flex-wrap items-center gap-3 border-t border-line pt-6">
                 <button
                     type="button"
-                    className="btn-primary"
+                    // Action principale seulement pour la toute première synchro.
+                    // Sur une facture déjà liée (surtout comptabilisée), la
+                    // resynchronisation devient une action discrète.
+                    className={hasOdooLink ? "btn-ghost" : "btn-primary"}
                     onClick={onSync}
                     disabled={mutationsDisabled}
                 >
                     {pending === "sync"
-                        ? "Synchronisation..."
-                        : "Synchroniser avec Odoo"}
+                        ? hasOdooLink
+                            ? "Resynchronisation..."
+                            : "Synchronisation..."
+                        : hasOdooLink
+                          ? "Resynchroniser"
+                          : "Synchroniser avec Odoo"}
                 </button>
 
                 {state.canPost && (
