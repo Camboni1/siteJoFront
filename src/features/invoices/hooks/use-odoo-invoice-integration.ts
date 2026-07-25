@@ -20,6 +20,8 @@ export type UseOdooInvoiceIntegration = {
     actionError: OdooErrorInfo | null;
     /** Notification de réussite de la dernière action. */
     actionMessage: string | null;
+    /** Version monotone incrémentée après chaque mutation Odoo réussie. */
+    successfulOperationVersion: number;
     reload: () => void;
     sync: () => void;
     post: () => void;
@@ -38,6 +40,8 @@ export function useOdooInvoiceIntegration(
     const [pending, setPending] = useState<OdooActionKey | null>(null);
     const [actionError, setActionError] = useState<OdooErrorInfo | null>(null);
     const [actionMessage, setActionMessage] = useState<string | null>(null);
+    const [successfulOperationVersion, setSuccessfulOperationVersion] =
+        useState(0);
     const [reloadToken, setReloadToken] = useState(0);
 
     // Suivi hors-rendu : ces refs ne servent qu'aux callbacks asynchrones et
@@ -125,6 +129,7 @@ export function useOdooInvoiceIntegration(
                     }
                     setState(data);
                     setActionMessage(successMessage);
+                    setSuccessfulOperationVersion((version) => version + 1);
                 })
                 .catch((error) => {
                     if (isStale(requestInvoiceId)) {
@@ -225,6 +230,7 @@ export function useOdooInvoiceIntegration(
         pending,
         actionError,
         actionMessage,
+        successfulOperationVersion,
         reload,
         sync,
         post,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 import { useOdooInvoiceIntegration } from "@/features/invoices/hooks/use-odoo-invoice-integration";
 import { OdooStatusBadge } from "@/features/invoices/components/odoo-status-badge";
@@ -52,6 +52,7 @@ function OdooIntegrationPanelContent({ invoiceId }: { invoiceId: string }) {
         pending,
         actionError,
         actionMessage,
+        successfulOperationVersion,
         reload,
         sync,
         post,
@@ -94,6 +95,7 @@ function OdooIntegrationPanelContent({ invoiceId }: { invoiceId: string }) {
                     pending={pending}
                     actionError={actionError}
                     actionMessage={actionMessage}
+                    successfulOperationVersion={successfulOperationVersion}
                     onSync={sync}
                     onPost={post}
                     onRefresh={refresh}
@@ -114,6 +116,7 @@ type OdooPanelBodyProps = {
     pending: "sync" | "post" | "refresh" | "download" | null;
     actionError: OdooErrorInfo | null;
     actionMessage: string | null;
+    successfulOperationVersion: number;
     onSync: () => void;
     onPost: () => void;
     onRefresh: () => void;
@@ -126,6 +129,7 @@ function OdooPanelBody({
     pending,
     actionError,
     actionMessage,
+    successfulOperationVersion,
     onSync,
     onPost,
     onRefresh,
@@ -134,25 +138,34 @@ function OdooPanelBody({
     const [peppolReadiness, setPeppolReadiness] =
         useState<OdooPeppolReadiness | null>(null);
     const [peppolLoadError, setPeppolLoadError] = useState(false);
+    const peppolRequestSequence = useRef(0);
     useEffect(() => {
-        let current = true;
+        const requestSequence = ++peppolRequestSequence.current;
+        let mounted = true;
         Promise.resolve(getPeppolReadiness(invoiceId))
             .then((readiness) => {
-                if (current && readiness) {
+                if (
+                    mounted &&
+                    requestSequence === peppolRequestSequence.current &&
+                    readiness
+                ) {
                     setPeppolReadiness(readiness);
                     setPeppolLoadError(false);
                 }
             })
             .catch(() => {
-                if (current) {
+                if (
+                    mounted &&
+                    requestSequence === peppolRequestSequence.current
+                ) {
                     setPeppolReadiness(null);
                     setPeppolLoadError(true);
                 }
             });
         return () => {
-            current = false;
+            mounted = false;
         };
-    }, [invoiceId]);
+    }, [invoiceId, successfulOperationVersion]);
     const currency = state.currencyCode ?? "EUR";
     const activeOperation = state.activeOperation;
     const busy = pending !== null;
