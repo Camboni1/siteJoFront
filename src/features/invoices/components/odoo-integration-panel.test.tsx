@@ -7,7 +7,10 @@ vi.mock("@/features/invoices/api/odoo-invoices-api");
 import * as odooApi from "@/features/invoices/api/odoo-invoices-api";
 import { ApiError } from "@/lib/api";
 import { OdooIntegrationPanel } from "@/features/invoices/components/odoo-integration-panel";
-import type { OdooInvoiceIntegrationResponse } from "@/features/invoices/types/odoo-invoice.types";
+import type {
+    OdooInvoiceIntegrationResponse,
+    OdooPeppolReadiness,
+} from "@/features/invoices/types/odoo-invoice.types";
 
 function makeState(
     overrides: Partial<OdooInvoiceIntegrationResponse> = {}
@@ -70,12 +73,145 @@ const posted = (overrides: Partial<OdooInvoiceIntegrationResponse> = {}) =>
         ...overrides,
     });
 
+function readiness(
+    overrides: Partial<OdooPeppolReadiness> = {}
+): OdooPeppolReadiness {
+    return {
+        featureEnabled: false,
+        environment: "sandbox",
+        invoicePosted: true,
+        companyReady: false,
+        customerReady: false,
+        customerParticipantIdentifierPresent: false,
+        documentReady: false,
+        canSend: false,
+        blockingReasons: ["PEPPOL_DISABLED", "PEPPOL_UNAVAILABLE"],
+        ...overrides,
+    };
+}
+
 beforeEach(() => {
     vi.mocked(odooApi.getOdooInvoiceState).mockResolvedValue(neverSynced());
     vi.mocked(odooApi.synchronizeInvoiceWithOdoo).mockResolvedValue(syncedDraft());
     vi.mocked(odooApi.postInvoiceToOdoo).mockResolvedValue(posted());
     vi.mocked(odooApi.refreshOdooInvoice).mockResolvedValue(syncedDraft());
     vi.mocked(odooApi.downloadOdooOfficialPdf).mockResolvedValue(undefined);
+    vi.mocked(odooApi.getPeppolReadiness).mockResolvedValue(readiness());
+});
+
+describe("OdooIntegrationPanel — readiness Peppol en lecture seule", () => {
+    it("charge la readiness désactivée et affiche l'environnement Test", async () => {
+        await renderReady();
+        expect(await screen.findByText("Test")).toBeInTheDocument();
+        expect(screen.getByText(/Envoi Peppol non disponible/)).toBeInTheDocument();
+        expect(odooApi.getPeppolReadiness).toHaveBeenCalledWith("inv-1");
+    });
+
+    it("traduit PEPPOL_UNAVAILABLE", async () => {
+        await renderReady();
+        expect(
+            await screen.findByText("Aucun transport sandbox autorisé n’est disponible.")
+        ).toBeInTheDocument();
+    });
+
+    it("signale un environnement interdit", async () => {
+        vi.mocked(odooApi.getPeppolReadiness).mockResolvedValue(
+            readiness({
+                environment: "production",
+                blockingReasons: ["PEPPOL_ENVIRONMENT_NOT_ALLOWED"],
+            })
+        );
+        await renderReady();
+        expect(await screen.findByText("Interdit")).toBeInTheDocument();
+        expect(screen.getByText("L’environnement n’est pas autorisé.")).toBeInTheDocument();
+    });
+
+    it("affiche une société non prête", async () => {
+        await renderReady();
+        expect(await screen.findByText(/Société : non prête/)).toBeInTheDocument();
+    });
+
+    it("affiche un client non prêt", async () => {
+        await renderReady();
+        expect(await screen.findByText(/Client : non prêt/)).toBeInTheDocument();
+    });
+
+    it("affiche une facture non comptabilisée", async () => {
+        vi.mocked(odooApi.getPeppolReadiness).mockResolvedValue(
+            readiness({
+                invoicePosted: false,
+                blockingReasons: ["PEPPOL_INVOICE_NOT_POSTED"],
+            })
+        );
+        await renderReady();
+        expect(
+            await screen.findByText("La facture n’est pas comptabilisée.")
+        ).toBeInTheDocument();
+    });
+
+    it("affiche un document non prêt", async () => {
+        vi.mocked(odooApi.getPeppolReadiness).mockResolvedValue(
+            readiness({ blockingReasons: ["PEPPOL_DOCUMENT_NOT_READY"] })
+        );
+        await renderReady();
+        expect(
+            await screen.findByText("Le document électronique n’est pas prêt.")
+        ).toBeInTheDocument();
+    });
+
+    it("affiche une facture déjà envoyée sans action", async () => {
+        vi.mocked(odooApi.getPeppolReadiness).mockResolvedValue(
+            readiness({ blockingReasons: ["PEPPOL_ALREADY_SENT"] })
+        );
+        await renderReady();
+        expect(await screen.findByText("La facture a déjà été envoyée.")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /Envoyer via Peppol/ }))
+            .not.toBeInTheDocument();
+    });
+
+    it("affiche une opération Peppol en cours sans action", async () => {
+        vi.mocked(odooApi.getPeppolReadiness).mockResolvedValue(
+            readiness({ blockingReasons: ["PEPPOL_OPERATION_IN_PROGRESS"] })
+        );
+        await renderReady();
+        expect(await screen.findByText("Une opération est déjà en cours."))
+            .toBeInTheDocument();
+    });
+
+    it("contrôle une erreur réseau et conserve les informations Odoo et PDF", async () => {
+        vi.mocked(odooApi.getOdooInvoiceState).mockResolvedValue(posted());
+        vi.mocked(odooApi.getPeppolReadiness).mockRejectedValue(
+            new Error("internal network detail")
+        );
+        await renderReady();
+        expect(await screen.findByText(/temporairement indisponible/)).toBeInTheDocument();
+        expect(screen.queryByText(/internal network detail/)).not.toBeInTheDocument();
+        expect(screen.getAllByText(/FAC\/2026\/00002/).length).toBeGreaterThan(0);
+        expect(screen.getByRole("button", { name: "Télécharger le PDF officiel" }))
+            .toBeInTheDocument();
+    });
+
+    it("ne rend aucune action Peppol même si un contrat incohérent annonce canSend", async () => {
+        vi.mocked(odooApi.getPeppolReadiness).mockResolvedValue(
+            readiness({
+                featureEnabled: true,
+                companyReady: true,
+                customerReady: true,
+                documentReady: true,
+                canSend: true,
+                blockingReasons: [],
+            })
+        );
+        await renderReady();
+        expect(await screen.findByText(/Envoi Peppol non disponible/)).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /Peppol/ })).not.toBeInTheDocument();
+    });
+
+    it("ne charge aucune readiness et aucune action pour CUSTOMER", async () => {
+        render(<OdooIntegrationPanel invoiceId="inv-customer" canManage={false} />);
+        expect(odooApi.getPeppolReadiness).not.toHaveBeenCalled();
+        expect(screen.queryByText(/Peppol/)).not.toBeInTheDocument();
+    });
 });
 
 afterEach(() => {

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ApiError } from "@/lib/api";
 import {
     downloadOdooOfficialPdf,
+    getPeppolReadiness,
     getOdooInvoiceState,
     postInvoiceToOdoo,
     refreshOdooInvoice,
@@ -108,6 +109,28 @@ describe("odoo-invoices-api URLs et cookies", () => {
         fetchMock.mockResolvedValue(jsonResponse(SAMPLE_STATE));
 
         await expect(getOdooInvoiceState("inv-1")).resolves.toEqual(SAMPLE_STATE);
+    });
+
+    it("charge uniquement la readiness Peppol par GET", async () => {
+        const readiness = {
+            featureEnabled: false,
+            environment: "sandbox",
+            invoicePosted: false,
+            companyReady: false,
+            customerReady: false,
+            customerParticipantIdentifierPresent: false,
+            documentReady: false,
+            canSend: false,
+            blockingReasons: ["PEPPOL_DISABLED", "PEPPOL_UNAVAILABLE"],
+        };
+        fetchMock.mockResolvedValue(jsonResponse(readiness));
+
+        await expect(getPeppolReadiness("inv-1")).resolves.toEqual(readiness);
+        const [url, options] = fetchMock.mock.calls[0];
+        expect(url).toMatch(
+            /\/api\/v1\/employee\/invoices\/inv-1\/odoo\/peppol-readiness$/
+        );
+        expect(options).toMatchObject({ method: "GET", credentials: "include" });
     });
 });
 

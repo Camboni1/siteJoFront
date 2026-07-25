@@ -47,20 +47,6 @@ export function getPeppolReadiness(invoiceId: string) {
     );
 }
 
-export function sendInvoiceViaPeppol(invoiceId: string) {
-    return apiFetch<OdooInvoiceIntegrationResponse>(
-        `${odooBasePath(invoiceId)}/peppol`,
-        { method: "POST" }
-    );
-}
-
-export function refreshPeppolStatus(invoiceId: string) {
-    return apiFetch<OdooInvoiceIntegrationResponse>(
-        `${odooBasePath(invoiceId)}/peppol/refresh`,
-        { method: "POST" }
-    );
-}
-
 export async function downloadOdooOfficialPdf(invoiceId: string) {
     // apiFetchBlob vérifie d'abord le statut HTTP et ne traite le corps comme
     // un Blob qu'en cas de réponse OK : on ne risque pas d'interpréter une

@@ -133,14 +133,21 @@ function OdooPanelBody({
 }: OdooPanelBodyProps) {
     const [peppolReadiness, setPeppolReadiness] =
         useState<OdooPeppolReadiness | null>(null);
+    const [peppolLoadError, setPeppolLoadError] = useState(false);
     useEffect(() => {
         let current = true;
         Promise.resolve(getPeppolReadiness(invoiceId))
             .then((readiness) => {
-                if (current && readiness) setPeppolReadiness(readiness);
+                if (current && readiness) {
+                    setPeppolReadiness(readiness);
+                    setPeppolLoadError(false);
+                }
             })
             .catch(() => {
-                if (current) setPeppolReadiness(null);
+                if (current) {
+                    setPeppolReadiness(null);
+                    setPeppolLoadError(true);
+                }
             });
         return () => {
             current = false;
@@ -248,7 +255,13 @@ function OdooPanelBody({
                 <h3 id="peppol-readiness-title" className="font-semibold">
                     Peppol — environnement de test
                 </h3>
-                {!peppolReadiness ? (
+                {peppolLoadError ? (
+                    <p className="mt-2 text-sm text-amber-300" role="status">
+                        État de préparation Peppol temporairement indisponible.
+                        Les informations Odoo et le PDF officiel restent
+                        disponibles.
+                    </p>
+                ) : !peppolReadiness ? (
                     <p className="mt-2 text-sm text-muted">
                         Préparation Peppol indisponible.
                     </p>
@@ -262,11 +275,10 @@ function OdooPanelBody({
                                     : "Interdit"}
                             </strong>
                         </p>
-                        {!peppolReadiness.featureEnabled && (
-                            <p className="text-amber-300">
-                                Envoi Peppol désactivé
-                            </p>
-                        )}
+                        <p className="text-amber-300">
+                            Envoi Peppol non disponible dans cet environnement
+                            de test
+                        </p>
                         <p>
                             Société :{" "}
                             {peppolReadiness.companyReady ? "prête" : "non prête"}
@@ -282,16 +294,6 @@ function OdooPanelBody({
                                 ))}
                             </ul>
                         )}
-                        {peppolReadiness.canSend &&
-                            peppolReadiness.featureEnabled &&
-                            peppolReadiness.environment === "sandbox" &&
-                            isPosted &&
-                            peppolReadiness.customerReady &&
-                            peppolReadiness.companyReady && (
-                                <button type="button" className="btn-primary">
-                                    Envoyer via Peppol — environnement de test
-                                </button>
-                            )}
                     </div>
                 )}
             </section>
