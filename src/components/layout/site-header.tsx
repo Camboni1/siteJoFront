@@ -38,6 +38,10 @@ export function SiteHeader() {
               ...(isCustomer(user)
                   ? [
                         {
+                            href: "/dashboard/vehicles",
+                            label: "Mes véhicules",
+                        },
+                        {
                             href: "/dashboard/invoices",
                             label: "Mes factures",
                         },

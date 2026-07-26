@@ -2,13 +2,17 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/components/providers/auth-provider";
 import * as appointmentsApi from "@/features/appointments/api/appointments-api";
 import * as garageServicesApi from "@/features/garage-services/api/garage-services-api";
+import {
+    AppointmentVehicleFields,
+    type AppointmentVehicleSource,
+} from "@/features/appointments/components/appointment-vehicle-fields";
 import type {
     Availability,
     AvailabilitySlot,
 } from "@/features/appointments/types/appointment.types";
+import { useCustomerGuard } from "@/features/customer-vehicles/hooks/use-customer-guard";
 import type { GarageService } from "@/features/garage-services/types/garage-service.types";
 import { formatDuration, formatTime } from "@/lib/format";
 import { PageHeader } from "@/components/ui/page-header";
@@ -24,7 +28,7 @@ function toDateInputValue(date: Date) {
 
 export default function NewAppointmentPage() {
     const router = useRouter();
-    const { user, loading } = useAuth();
+    const { loading, authorized } = useCustomerGuard();
 
     const [services, setServices] = useState<GarageService[]>([]);
     const [serviceId, setServiceId] = useState("");
@@ -39,6 +43,9 @@ export default function NewAppointmentPage() {
     );
 
     const [phone, setPhone] = useState("");
+    const [vehicleSource, setVehicleSource] =
+        useState<AppointmentVehicleSource>("manual");
+    const [selectedVehicleId, setSelectedVehicleId] = useState("");
     const [vehicleBrand, setVehicleBrand] = useState("");
     const [vehicleModel, setVehicleModel] = useState("");
     const [licensePlate, setLicensePlate] = useState("");
@@ -48,13 +55,7 @@ export default function NewAppointmentPage() {
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
-        if (!loading && !user) {
-            router.push("/login");
-        }
-    }, [loading, user, router]);
-
-    useEffect(() => {
-        if (!user) {
+        if (!authorized) {
             return;
         }
 
@@ -62,10 +63,10 @@ export default function NewAppointmentPage() {
             .getActiveServices()
             .then(setServices)
             .catch(() => setServices([]));
-    }, [user]);
+    }, [authorized]);
 
     useEffect(() => {
-        if (!user || !date) {
+        if (!authorized || !date) {
             return;
         }
 
@@ -93,7 +94,7 @@ export default function NewAppointmentPage() {
         return () => {
             ignore = true;
         };
-    }, [user, date, serviceId]);
+    }, [authorized, date, serviceId]);
 
     async function refreshAvailability() {
         try {
@@ -115,16 +116,32 @@ export default function NewAppointmentPage() {
             return;
         }
 
+        if (vehicleSource === "saved" && !selectedVehicleId) {
+            setError("Choisissez un véhicule enregistré");
+            return;
+        }
+
         setError(null);
         setSubmitting(true);
 
         try {
             await appointmentsApi.createAppointment({
                 serviceId: serviceId || null,
+                customerVehicleId:
+                    vehicleSource === "saved" ? selectedVehicleId : null,
                 customerPhone: phone,
-                vehicleBrand: vehicleBrand || undefined,
-                vehicleModel: vehicleModel || undefined,
-                licensePlate: licensePlate || undefined,
+                vehicleBrand:
+                    vehicleSource === "saved"
+                        ? null
+                        : vehicleBrand.trim() || null,
+                vehicleModel:
+                    vehicleSource === "saved"
+                        ? null
+                        : vehicleModel.trim() || null,
+                licensePlate:
+                    vehicleSource === "saved"
+                        ? null
+                        : licensePlate.trim().toUpperCase() || null,
                 startAt: selectedSlot.startAt,
                 endAt: selectedSlot.endAt,
                 message: message || undefined,
@@ -145,12 +162,8 @@ export default function NewAppointmentPage() {
         }
     }
 
-    if (loading) {
+    if (loading || !authorized) {
         return <LoadingScreen />;
-    }
-
-    if (!user) {
-        return null;
     }
 
     const currentAvailability =
@@ -187,10 +200,11 @@ export default function NewAppointmentPage() {
                         <h2 className="mt-2 text-lg font-semibold">Prestation</h2>
 
                         <div className="mt-5">
-                            <label className="field-label">
+                            <label className="field-label" htmlFor="appointment-service">
                                 Service
                             </label>
                             <select
+                                id="appointment-service"
                                 className="input"
                                 value={serviceId}
                                 onChange={(event) => {
@@ -235,10 +249,11 @@ export default function NewAppointmentPage() {
                         </h2>
 
                         <div className="mt-5">
-                            <label className="field-label">
+                            <label className="field-label" htmlFor="appointment-date">
                                 Date
                             </label>
                             <input
+                                id="appointment-date"
                                 type="date"
                                 className="input"
                                 value={date}
@@ -329,10 +344,11 @@ export default function NewAppointmentPage() {
 
                         <div className="mt-5 space-y-4">
                             <div>
-                                <label className="field-label">
+                                <label className="field-label" htmlFor="appointment-phone">
                                     Téléphone
                                 </label>
                                 <input
+                                    id="appointment-phone"
                                     type="tel"
                                     className="input"
                                     value={phone}
@@ -345,58 +361,25 @@ export default function NewAppointmentPage() {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label className="field-label">
-                                        Marque du véhicule
-                                    </label>
-                                    <input
-                                        className="input"
-                                        value={vehicleBrand}
-                                        onChange={(event) =>
-                                            setVehicleBrand(event.target.value)
-                                        }
-                                        placeholder="Volkswagen"
-                                        maxLength={100}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="field-label">
-                                        Modèle
-                                    </label>
-                                    <input
-                                        className="input"
-                                        value={vehicleModel}
-                                        onChange={(event) =>
-                                            setVehicleModel(event.target.value)
-                                        }
-                                        placeholder="Golf"
-                                        maxLength={100}
-                                    />
-                                </div>
-                            </div>
+                            <AppointmentVehicleFields
+                                source={vehicleSource}
+                                selectedVehicleId={selectedVehicleId}
+                                vehicleBrand={vehicleBrand}
+                                vehicleModel={vehicleModel}
+                                licensePlate={licensePlate}
+                                onSourceChange={setVehicleSource}
+                                onSelectedVehicleChange={setSelectedVehicleId}
+                                onVehicleBrandChange={setVehicleBrand}
+                                onVehicleModelChange={setVehicleModel}
+                                onLicensePlateChange={setLicensePlate}
+                            />
 
                             <div>
-                                <label className="field-label">
-                                    Plaque d&apos;immatriculation
-                                </label>
-                                <input
-                                    className="input font-mono uppercase"
-                                    value={licensePlate}
-                                    onChange={(event) =>
-                                        setLicensePlate(event.target.value)
-                                    }
-                                    placeholder="1-ABC-123"
-                                    maxLength={30}
-                                />
-                            </div>
-
-                            <div>
-                                <label className="field-label">
+                                <label className="field-label" htmlFor="appointment-message">
                                     Message (facultatif)
                                 </label>
                                 <textarea
+                                    id="appointment-message"
                                     className="input min-h-28 resize-y"
                                     value={message}
                                     onChange={(event) =>

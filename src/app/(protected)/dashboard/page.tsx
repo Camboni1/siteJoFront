@@ -115,6 +115,32 @@ export default function DashboardPage() {
                             </p>
                         </Link>
 
+                        {isCustomer(user) && (
+                            <Link
+                                href="/dashboard/vehicles"
+                                className="card-interactive group"
+                            >
+                                <div className="flex items-start justify-between">
+                                    <span className="grid h-10 w-10 place-items-center rounded-lg border border-accent/25 bg-accent/8 font-mono text-xs text-accent">
+                                        GAR
+                                    </span>
+                                    <span
+                                        aria-hidden
+                                        className="text-faint transition group-hover:translate-x-1 group-hover:text-accent"
+                                    >
+                                        →
+                                    </span>
+                                </div>
+                                <h3 className="mt-8 font-semibold">
+                                    Mes véhicules
+                                </h3>
+                                <p className="mt-2 text-sm leading-6 text-muted">
+                                    Enregistrer et gérer les véhicules utilisés
+                                    pour vos rendez-vous.
+                                </p>
+                            </Link>
+                        )}
+
                         <Link href="/vehicles" className="card-interactive group">
                             <div className="flex items-start justify-between">
                                 <span className="grid h-10 w-10 place-items-center rounded-lg border border-accent/25 bg-accent/8 font-mono text-xs text-accent">

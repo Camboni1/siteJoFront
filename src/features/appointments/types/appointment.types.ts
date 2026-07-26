@@ -10,6 +10,7 @@ export type Appointment = {
     customerId: string | null;
     serviceId: string | null;
     serviceName: string | null;
+    customerVehicleId: string | null;
     customerFirstName: string;
     customerLastName: string;
     customerEmail: string | null;
@@ -29,10 +30,11 @@ export type Appointment = {
 
 export type CreateAppointmentRequest = {
     serviceId: string | null;
+    customerVehicleId?: string | null;
     customerPhone: string;
-    vehicleBrand?: string;
-    vehicleModel?: string;
-    licensePlate?: string;
+    vehicleBrand?: string | null;
+    vehicleModel?: string | null;
+    licensePlate?: string | null;
     startAt: string;
     endAt: string;
     message?: string;
