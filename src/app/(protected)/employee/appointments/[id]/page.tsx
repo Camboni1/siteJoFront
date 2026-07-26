@@ -10,6 +10,7 @@ import type {
     AppointmentStatus,
 } from "@/features/appointments/types/appointment.types";
 import { AppointmentStatusBadge } from "@/features/appointments/components/appointment-status-badge";
+import { CreateWorkOrderFromAppointment } from "@/features/work-orders/components/create-work-order-from-appointment";
 import { formatDateTime, formatTime } from "@/lib/format";
 import { PageHeader } from "@/components/ui/page-header";
 import { LoadingScreen } from "@/components/ui/loading-screen";
@@ -207,6 +208,10 @@ export default function EmployeeAppointmentDetailPage() {
                                 />
                             </div>
                         </div>
+
+                        <CreateWorkOrderFromAppointment
+                            appointment={appointment}
+                        />
 
                         {appointment.message && (
                             <div className="card">

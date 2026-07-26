@@ -244,6 +244,30 @@ export default function DashboardPage() {
                             </Link>
 
                             <Link
+                                href="/employee/work-orders"
+                                className="card-interactive group"
+                            >
+                                <div className="flex items-start justify-between">
+                                    <span className="grid h-10 w-10 place-items-center rounded-lg border border-accent/25 bg-accent/8 font-mono text-xs text-accent">
+                                        OR
+                                    </span>
+                                    <span
+                                        aria-hidden
+                                        className="text-faint transition group-hover:translate-x-1 group-hover:text-accent"
+                                    >
+                                        →
+                                    </span>
+                                </div>
+                                <h3 className="mt-8 font-semibold">
+                                    Ordres de réparation
+                                </h3>
+                                <p className="mt-2 text-sm leading-6 text-muted">
+                                    Piloter les dossiers atelier, prestations et
+                                    transitions d’intervention.
+                                </p>
+                            </Link>
+
+                            <Link
                                 href="/employee/customers"
                                 className="card-interactive group"
                             >
