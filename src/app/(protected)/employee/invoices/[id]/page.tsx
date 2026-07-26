@@ -248,6 +248,25 @@ export default function EmployeeInvoiceDetailPage() {
                             )}
                         </InvoiceSummaryCard>
 
+                        {invoice.workOrderId !== null && (
+                            <section className="card">
+                                <p className="section-title">Origine</p>
+                                <h2 className="mt-2 text-lg font-semibold">
+                                    Dossier atelier
+                                </h2>
+                                <p className="mt-3 text-sm leading-6 text-muted">
+                                    Cette facture provient d&apos;un ordre de
+                                    réparation.
+                                </p>
+                                <Link
+                                    href={`/employee/work-orders/${invoice.workOrderId}`}
+                                    className="mt-4 inline-flex text-link"
+                                >
+                                    Ouvrir le dossier atelier
+                                </Link>
+                            </section>
+                        )}
+
                         {invoice.status === "DRAFT" && (
                             <p className="text-sm text-muted">
                                 Ce brouillon reste modifiable.

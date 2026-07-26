@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useId, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isApiError } from "@/lib/api";
+import { localIsoDate } from "@/lib/date";
 import { formatCurrency } from "@/lib/format";
 import * as customersApi from "@/features/customers/api/customers-api";
 import type { Customer } from "@/features/customers/types/customer.types";
@@ -56,17 +57,9 @@ function emptyLine(): LineFormValues {
     };
 }
 
-function todayIsoDate() {
-    const now = new Date();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-
-    return `${now.getFullYear()}-${month}-${day}`;
-}
-
 function toFormValues(invoice?: InvoiceResponse): FormValues {
     if (!invoice) {
-        const today = todayIsoDate();
+        const today = localIsoDate();
 
         return {
             customerId: "",
@@ -275,6 +268,11 @@ export function InvoiceForm({
 }: InvoiceFormProps) {
     const formId = useId();
     const router = useRouter();
+    const linkedInvoice =
+        initialInvoice && initialInvoice.workOrderId !== null
+            ? initialInvoice
+            : null;
+    const customerLocked = linkedInvoice !== null;
 
     const [values, setValues] = useState<FormValues>(() =>
         toFormValues(initialInvoice)
@@ -286,10 +284,16 @@ export function InvoiceForm({
     const [apiError, setApiError] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
 
-    const [customers, setCustomers] = useState<Customer[] | null>(null);
+    const [customers, setCustomers] = useState<Customer[] | null>(
+        customerLocked ? [] : null
+    );
     const [customersError, setCustomersError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (customerLocked) {
+            return;
+        }
+
         let ignore = false;
 
         customersApi
@@ -333,7 +337,7 @@ export function InvoiceForm({
         return () => {
             ignore = true;
         };
-    }, [router]);
+    }, [customerLocked, router]);
 
     function updateValue<Field extends keyof FieldErrors>(
         field: Field,
@@ -455,63 +459,88 @@ export function InvoiceForm({
                         </div>
                     )}
 
-                    <div>
-                        <label
-                            className="field-label"
-                            htmlFor={`${formId}-customer`}
-                        >
-                            Client
-                            <span aria-hidden className="text-accent">
-                                {" "}
-                                *
-                            </span>
-                        </label>
-                        <select
-                            id={`${formId}-customer`}
-                            className="input"
-                            value={values.customerId}
-                            onChange={(event) =>
-                                updateValue("customerId", event.target.value)
-                            }
-                            disabled={formDisabled || customers === null}
-                            aria-required
-                            aria-invalid={
-                                fieldErrors.customerId ? true : undefined
-                            }
-                            aria-describedby={
-                                fieldErrors.customerId
-                                    ? `${formId}-customer-error`
-                                    : undefined
-                            }
-                        >
-                            <option value="">
-                                {customers === null
-                                    ? "Chargement des clients..."
-                                    : "Sélectionner un client..."}
-                            </option>
-                            {(customers ?? []).map((customer) => (
-                                <option key={customer.id} value={customer.id}>
-                                    {customer.lastName} {customer.firstName}
+                    {customerLocked ? (
+                        <div className="surface-muted">
+                            <p className="field-label">Client</p>
+                            <p className="mt-2 text-sm font-medium">
+                                {[
+                                    linkedInvoice.customer.firstName,
+                                    linkedInvoice.customer.lastName,
+                                ]
+                                    .filter(Boolean)
+                                    .join(" ") ||
+                                    `Client ${linkedInvoice.customerId}`}
+                            </p>
+                            <p className="mt-1.5 text-xs text-faint">
+                                Le client est lié au dossier atelier et ne peut
+                                pas être modifié.
+                            </p>
+                        </div>
+                    ) : (
+                        <div>
+                            <label
+                                className="field-label"
+                                htmlFor={`${formId}-customer`}
+                            >
+                                Client
+                                <span aria-hidden className="text-accent">
+                                    {" "}
+                                    *
+                                </span>
+                            </label>
+                            <select
+                                id={`${formId}-customer`}
+                                className="input"
+                                value={values.customerId}
+                                onChange={(event) =>
+                                    updateValue(
+                                        "customerId",
+                                        event.target.value
+                                    )
+                                }
+                                disabled={formDisabled || customers === null}
+                                aria-required
+                                aria-invalid={
+                                    fieldErrors.customerId ? true : undefined
+                                }
+                                aria-describedby={
+                                    fieldErrors.customerId
+                                        ? `${formId}-customer-error`
+                                        : undefined
+                                }
+                            >
+                                <option value="">
+                                    {customers === null
+                                        ? "Chargement des clients..."
+                                        : "Sélectionner un client..."}
                                 </option>
-                            ))}
-                        </select>
-                        {fieldErrors.customerId && (
-                            <p
-                                id={`${formId}-customer-error`}
-                                className="mt-1.5 text-xs text-red-300"
-                            >
-                                {fieldErrors.customerId}
-                            </p>
-                        )}
-                        {customersError && (
-                            <p
-                                role="alert"
-                                className="mt-1.5 text-xs text-red-300"
-                            >
-                                {customersError}
-                            </p>
-                        )}
-                    </div>
+                                {(customers ?? []).map((customer) => (
+                                    <option
+                                        key={customer.id}
+                                        value={customer.id}
+                                    >
+                                        {customer.lastName} {customer.firstName}
+                                    </option>
+                                ))}
+                            </select>
+                            {fieldErrors.customerId && (
+                                <p
+                                    id={`${formId}-customer-error`}
+                                    className="mt-1.5 text-xs text-red-300"
+                                >
+                                    {fieldErrors.customerId}
+                                </p>
+                            )}
+                            {customersError && (
+                                <p
+                                    role="alert"
+                                    className="mt-1.5 text-xs text-red-300"
+                                >
+                                    {customersError}
+                                </p>
+                            )}
+                        </div>
+                    )}
 
                     <div className="grid gap-4 sm:grid-cols-2">
                         <div>

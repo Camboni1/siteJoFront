@@ -48,6 +48,7 @@ export type InvoiceResponse = {
     id: string;
     invoiceNumber: string;
     customerId: string | null;
+    workOrderId: string | null;
     direction: InvoiceDirection;
     status: InvoiceStatus;
     invoiceDate: string;
@@ -79,6 +80,13 @@ export type CreateInvoiceRequest = {
     currency: string;
     notes: string | null;
     lines: InvoiceLineRequest[];
+};
+
+export type CreateInvoiceFromWorkOrderRequest = {
+    invoiceDate: string;
+    dueDate: string;
+    currency: string;
+    notes: string | null;
 };
 
 export type UpdateInvoiceRequest = CreateInvoiceRequest;

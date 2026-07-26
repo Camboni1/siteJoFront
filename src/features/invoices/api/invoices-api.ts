@@ -1,6 +1,7 @@
 import { apiFetch, apiFetchBlob } from "@/lib/api";
 import { saveBlob } from "@/lib/download";
 import type {
+    CreateInvoiceFromWorkOrderRequest,
     CreateInvoiceRequest,
     EmployeeInvoiceFilters,
     InvoiceResponse,
@@ -43,6 +44,21 @@ export function createInvoice(data: CreateInvoiceRequest) {
         method: "POST",
         body: JSON.stringify(data),
     });
+}
+
+export function createInvoiceDraftFromWorkOrder(
+    workOrderId: string,
+    data: CreateInvoiceFromWorkOrderRequest
+) {
+    return apiFetch<InvoiceResponse>(
+        `/api/v1/employee/work-orders/${encodeURIComponent(
+            workOrderId
+        )}/invoice-draft`,
+        {
+            method: "POST",
+            body: JSON.stringify(data),
+        }
+    );
 }
 
 export function updateInvoice(id: string, data: UpdateInvoiceRequest) {

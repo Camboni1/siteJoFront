@@ -10,6 +10,7 @@ import type { Appointment } from "@/features/appointments/types/appointment.type
 import * as customersApi from "@/features/customers/api/customers-api";
 import type { Customer } from "@/features/customers/types/customer.types";
 import type { CustomerVehicle } from "@/features/customer-vehicles/types/customer-vehicle.types";
+import { CreateInvoiceFromWorkOrder } from "@/features/invoices/components/create-invoice-from-work-order";
 import { useStaffGuard } from "@/features/vehicles/hooks/use-staff-guard";
 import * as workOrdersApi from "@/features/work-orders/api/work-orders-api";
 import { WorkOrderInfoForm } from "@/features/work-orders/components/work-order-info-form";
@@ -308,6 +309,7 @@ export function WorkOrderDetail() {
                             order={order}
                             onUpdated={setOrder}
                         />
+                        <CreateInvoiceFromWorkOrder order={order} />
                         <WorkOrderInfoForm
                             order={order}
                             onUpdated={setOrder}

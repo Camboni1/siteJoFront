@@ -141,8 +141,8 @@ beforeEach(() => {
     vi.mocked(garageServicesApi.getAllServices).mockResolvedValue([]);
 });
 
-function mockSuccessfulLoad() {
-    vi.mocked(workOrdersApi.getWorkOrder).mockResolvedValue(order);
+function mockSuccessfulLoad(loadedOrder: WorkOrder = order) {
+    vi.mocked(workOrdersApi.getWorkOrder).mockResolvedValue(loadedOrder);
     vi.mocked(customersApi.getCustomer).mockResolvedValue(customer);
     vi.mocked(
         workOrdersApi.getWorkOrderCustomerVehicle
@@ -186,6 +186,42 @@ describe("WorkOrderDetail", () => {
             "href",
             "/employee/appointments/appointment-1"
         );
+    });
+
+    it("intègre la création de facture pour un ordre READY avec lignes", async () => {
+        mockSuccessfulLoad({ ...order, status: "READY" });
+
+        render(<WorkOrderDetail />);
+
+        expect(
+            await screen.findByRole("button", {
+                name: "Créer le brouillon de facture",
+            })
+        ).toBeInTheDocument();
+    });
+
+    it("explique pourquoi un ordre READY sans ligne ne peut pas être facturé", async () => {
+        mockSuccessfulLoad({
+            ...order,
+            status: "READY",
+            lines: [],
+            amountExcludingVat: 0,
+            vatAmount: 0,
+            amountIncludingVat: 0,
+        });
+
+        render(<WorkOrderDetail />);
+
+        expect(
+            await screen.findByText(
+                "Ajoutez au moins une prestation avant de créer la facture."
+            )
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole("button", {
+                name: "Créer le brouillon de facture",
+            })
+        ).not.toBeInTheDocument();
     });
 
     it("affiche l’ordre avec des libellés de repli si les données liées échouent", async () => {
