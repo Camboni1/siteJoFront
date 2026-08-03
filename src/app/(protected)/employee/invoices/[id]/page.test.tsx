@@ -6,17 +6,26 @@ vi.mock("@/features/invoices/api/invoices-api");
 vi.mock(
     "@/features/invoices/components/odoo-integration-panel",
     () => ({
-        OdooIntegrationPanel: ({ invoiceId }: { invoiceId: string }) => (
-            <div data-testid="odoo-panel">Odoo {invoiceId}</div>
+        OdooIntegrationPanel: ({
+            invoiceId,
+            localInvoiceStatus,
+        }: {
+            invoiceId: string;
+            localInvoiceStatus: string;
+        }) => (
+            <div data-testid="odoo-panel">
+                Odoo {invoiceId} {localInvoiceStatus}
+            </div>
         ),
     })
 );
 
 const pushMock = vi.fn();
+const routerMock = { push: pushMock };
 
 vi.mock("next/navigation", () => ({
     useParams: () => ({ id: "invoice-1" }),
-    useRouter: () => ({ push: pushMock }),
+    useRouter: () => routerMock,
 }));
 
 import EmployeeInvoiceDetailPage from "@/app/(protected)/employee/invoices/[id]/page";
@@ -61,7 +70,7 @@ describe("EmployeeInvoiceDetailPage", () => {
             screen.getByRole("link", { name: "Ouvrir le dossier atelier" })
         ).toHaveAttribute("href", "/employee/work-orders/order-1");
         expect(screen.getByTestId("odoo-panel")).toHaveTextContent(
-            "Odoo invoice-1"
+            "Odoo invoice-1 DRAFT"
         );
     });
 
@@ -110,5 +119,32 @@ describe("EmployeeInvoiceDetailPage", () => {
         expect(
             await screen.findByText("La facture est marquée comme payée.")
         ).toBeInTheDocument();
+    });
+
+    it("propage le statut React au panneau Odoo après l’émission", async () => {
+        const draftInvoice = invoiceFixture({ status: "DRAFT" });
+        vi.mocked(invoicesApi.getEmployeeInvoice).mockResolvedValue(
+            draftInvoice
+        );
+        vi.mocked(invoicesApi.updateInvoiceStatus).mockResolvedValue({
+            ...draftInvoice,
+            status: "SENT",
+        });
+        vi.spyOn(window, "confirm").mockReturnValue(true);
+
+        render(<EmployeeInvoiceDetailPage />);
+
+        expect(await screen.findByTestId("odoo-panel")).toHaveTextContent(
+            "Odoo invoice-1 DRAFT"
+        );
+        fireEvent.click(
+            screen.getByRole("button", { name: "Émettre la facture" })
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId("odoo-panel")).toHaveTextContent(
+                "Odoo invoice-1 SENT"
+            );
+        });
     });
 });

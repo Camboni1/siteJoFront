@@ -18,6 +18,8 @@ CMD ["sh", "-lc", "npm test -- --run && npm run lint && npx tsc --noEmit && npm 
 # --- Build de production ---
 FROM node:22-alpine AS build
 WORKDIR /app
+ARG BACKEND_URL=http://localhost:8080
+ENV BACKEND_URL=${BACKEND_URL}
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build

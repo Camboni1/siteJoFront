@@ -296,6 +296,7 @@ export default function EmployeeInvoiceDetailPage() {
                         {invoice.direction === "OUTGOING" && (
                             <OdooIntegrationPanel
                                 invoiceId={invoice.id}
+                                localInvoiceStatus={invoice.status}
                                 canManage={isStaff(user)}
                             />
                         )}

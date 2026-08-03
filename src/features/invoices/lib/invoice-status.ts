@@ -43,6 +43,21 @@ export const INVOICE_STATUS_TRANSITIONS: Record<InvoiceStatus, InvoiceStatus[]> 
     PEPPOL_FAILED: [],
 };
 
+// Miroir de OdooInvoiceTransactionService.INTEGRABLE_STATUSES.
+// Le backend reste la garantie finale ; cette règle évite de proposer une
+// mutation Odoo que le statut local de la facture rend invalide.
+export function canSynchronizeInvoiceWithOdoo(
+    status: InvoiceStatus
+): boolean {
+    return (
+        status === "SENT" ||
+        status === "PAID" ||
+        status === "OVERDUE" ||
+        status === "PEPPOL_SENT" ||
+        status === "PEPPOL_FAILED"
+    );
+}
+
 export function isInvoiceStatus(value: string): value is InvoiceStatus {
     return value in INVOICE_STATUS_LABELS;
 }

@@ -1,189 +1,335 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { FeaturedVehicles } from "@/features/vehicles/components/public/featured-vehicles";
 
-const features = [
+export const metadata: Metadata = {
+    title: "Garage indépendant, entretien et véhicules d’occasion",
+    description:
+        "Découvrez les prestations de CamboGarage, prenez rendez-vous en ligne et consultez les véhicules d’occasion disponibles.",
+};
+
+const quickActions = [
     {
-        number: "01",
-        title: "Réserver simplement",
-        description:
-            "Choisissez votre service, votre date et un créneau disponible en quelques instants.",
+        title: "Prendre rendez-vous",
+        description: "Choisir une prestation et demander un créneau.",
+        href: "/dashboard/appointments/new",
     },
     {
-        number: "02",
-        title: "Suivre l’intervention",
-        description:
-            "Retrouvez le statut de vos demandes et tout l’historique de votre véhicule.",
+        title: "Accéder à mon espace",
+        description: "Consulter mes rendez-vous et le suivi de mes véhicules.",
+        href: "/dashboard",
     },
     {
-        number: "03",
-        title: "Rouler sereinement",
+        title: "Voir les véhicules d’occasion",
+        description: "Parcourir les véhicules actuellement au catalogue.",
+        href: "/vehicles",
+    },
+];
+
+const services = [
+    {
+        title: "Entretien",
         description:
-            "Entretien, diagnostic et réparation réunis dans un espace clair et accessible.",
+            "Vidange, contrôles courants et entretien adapté à votre véhicule.",
+    },
+    {
+        title: "Réparation",
+        description:
+            "Prise en charge des réparations mécaniques après un diagnostic clair.",
+    },
+    {
+        title: "Diagnostic",
+        description:
+            "Recherche de l’origine d’un voyant, d’un bruit ou d’un dysfonctionnement.",
+    },
+    {
+        title: "Véhicules d’occasion",
+        description:
+            "Consultez les véhicules disponibles et leurs informations détaillées.",
+        href: "/vehicles",
+    },
+];
+
+const appointmentSteps = [
+    {
+        title: "Choisissez une prestation",
+        description: "Indiquez simplement le motif de votre visite.",
+    },
+    {
+        title: "Sélectionnez un créneau",
+        description: "Renseignez votre véhicule et choisissez une disponibilité.",
+    },
+    {
+        title: "Suivez votre demande",
+        description: "Retrouvez son avancement depuis votre espace client.",
     },
 ];
 
 export default function HomePage() {
     return (
-        <main className="flex flex-1 flex-col overflow-hidden">
-            <section className="relative flex flex-1 items-center">
-                <div className="mx-auto grid w-full max-w-7xl items-center gap-14 px-5 py-16 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:py-24">
-                    <div className="reveal max-w-2xl">
-                        <div className="eyebrow inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent/5 px-3 py-1.5">
-                            <span className="h-1.5 w-1.5 rounded-full bg-accent shadow-[0_0_10px_rgba(232,160,75,0.75)]" />
-                            Entretien · Réparation · Diagnostic
-                        </div>
-
-                        <h1 className="mt-7 text-4xl leading-[1.03] font-semibold tracking-[-0.04em] text-ink sm:text-6xl lg:text-7xl">
-                            Votre voiture,
-                            <span className="mt-1 block text-muted">
-                                entre de bonnes mains.
-                            </span>
-                        </h1>
-
-                        <p className="mt-7 max-w-xl text-base leading-7 text-muted sm:text-lg">
-                            Un atelier de proximité et un suivi en ligne sans
-                            détour. Prenez rendez-vous, suivez vos réparations et
-                            gardez l’esprit tranquille.
+        <main className="flex flex-1 flex-col overflow-hidden bg-canvas">
+            <section className="border-b border-line/70 bg-canvas">
+                <div className="mx-auto grid w-full max-w-[76rem] gap-10 px-5 py-12 sm:px-6 sm:py-14 lg:grid-cols-[1.15fr_0.85fr] lg:items-center lg:gap-14 lg:py-16">
+                    <div className="max-w-2xl">
+                        <p className="text-sm font-semibold text-accent">
+                            Garage automobile indépendant à Namur
                         </p>
 
-                        <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+                        <h1 className="mt-4 text-4xl leading-[1.08] font-semibold tracking-[-0.035em] text-ink sm:text-5xl lg:text-[3.5rem]">
+                            Entretien et réparation automobile à Namur
+                        </h1>
+
+                        <p className="mt-5 max-w-xl text-base leading-7 text-muted sm:text-lg">
+                            Prenez rendez-vous en ligne, suivez vos interventions
+                            et retrouvez les informations de votre véhicule depuis
+                            votre espace client.
+                        </p>
+
+                        <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                             <Link
-                                href="/register"
-                                className="btn-primary px-5 py-3"
+                                href="/dashboard/appointments/new"
+                                prefetch={false}
+                                className="btn-primary min-h-12 px-5 py-3"
                             >
                                 Prendre rendez-vous
-                                <span aria-hidden>→</span>
                             </Link>
                             <Link
-                                href="/login"
-                                className="btn-ghost px-5 py-3"
+                                href="/vehicles"
+                                className="btn-ghost min-h-12 px-5 py-3"
                             >
-                                Consulter mon espace
+                                Voir les véhicules d’occasion
                             </Link>
                         </div>
 
-                        <div className="mt-10 flex flex-wrap items-center gap-x-7 gap-y-3 border-t border-line/70 pt-5 font-mono text-[0.65rem] tracking-[0.1em] text-faint uppercase">
-                            <span>Lun — Ven · 08:00 — 18:00</span>
-                            <span className="flex items-center gap-2">
-                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                                Rendez-vous en ligne
-                            </span>
+                        <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+                            <Link
+                                href="/#atelier"
+                                className="text-link inline-flex min-h-11 items-center"
+                            >
+                                Coordonnées et horaires
+                            </Link>
+                            <Link
+                                href="/dashboard"
+                                prefetch={false}
+                                className="inline-flex min-h-11 items-center font-medium text-muted transition hover:text-ink"
+                            >
+                                Accéder à mon espace
+                            </Link>
                         </div>
                     </div>
 
-                    <div className="reveal relative mx-auto w-full max-w-xl lg:ml-auto [animation-delay:120ms]">
-                        <div className="absolute -inset-10 -z-10 rounded-full bg-accent/5 blur-3xl" />
-                        <div className="overflow-hidden rounded-2xl border border-line bg-[#242528] shadow-[0_28px_80px_rgba(0,0,0,0.38)]">
-                            <div className="flex items-center justify-between border-b border-line px-5 py-3.5">
-                                <div className="flex gap-1.5" aria-hidden>
-                                    <span className="h-2.5 w-2.5 rounded-full bg-[#ed6a5e]" />
-                                    <span className="h-2.5 w-2.5 rounded-full bg-[#e7b34d]" />
-                                    <span className="h-2.5 w-2.5 rounded-full bg-[#61c454]" />
-                                </div>
-                                <span className="font-mono text-[0.6rem] tracking-[0.14em] text-faint uppercase">
-                                    Espace client
-                                </span>
-                            </div>
-
-                            <div className="p-5 sm:p-7">
-                                <div className="flex items-start justify-between gap-4">
-                                    <div>
-                                        <p className="eyebrow">Prochaine visite</p>
-                                        <h2 className="mt-2 text-xl font-semibold tracking-tight">
-                                            Entretien annuel
-                                        </h2>
-                                        <p className="mt-1 text-sm text-muted">
-                                            Mardi · 09:30 — 10:30
-                                        </p>
-                                    </div>
-                                    <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/25 bg-emerald-500/8 px-3 py-1 text-xs font-medium text-emerald-300">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                                        Confirmé
+                    <aside
+                        aria-labelledby="quick-actions-title"
+                        className="rounded-xl border border-line bg-surface p-5 shadow-[0_12px_30px_rgba(0,0,0,0.12)] sm:p-6"
+                    >
+                        <h2
+                            id="quick-actions-title"
+                            className="text-xl font-semibold tracking-tight"
+                        >
+                            Que souhaitez-vous faire ?
+                        </h2>
+                        <nav
+                            aria-label="Actions rapides"
+                            className="mt-4 divide-y divide-line"
+                        >
+                            {quickActions.map((action) => (
+                                <Link
+                                    key={action.href}
+                                    href={action.href}
+                                    prefetch={
+                                        !action.href.startsWith("/dashboard")
+                                    }
+                                    className="group flex min-h-20 items-center justify-between gap-5 py-4 first:pt-2 last:pb-2"
+                                >
+                                    <span>
+                                        <span className="block text-sm font-semibold text-ink transition group-hover:text-accent">
+                                            {action.title}
+                                        </span>
+                                        <span className="mt-1 block text-sm leading-5 text-muted">
+                                            {action.description}
+                                        </span>
                                     </span>
-                                </div>
-
-                                <div className="my-7 h-px bg-line" />
-
-                                <div className="grid gap-3 sm:grid-cols-3">
-                                    {[
-                                        ["01", "Demande", "Reçue"],
-                                        ["02", "Créneau", "Confirmé"],
-                                        ["03", "Atelier", "À venir"],
-                                    ].map(([step, label, value], index) => (
-                                        <div
-                                            key={step}
-                                            className={`rounded-xl border p-4 ${
-                                                index < 2
-                                                    ? "border-accent/25 bg-accent/5"
-                                                    : "border-line bg-surface-soft"
-                                            }`}
-                                        >
-                                            <span className="font-mono text-[0.6rem] text-accent">
-                                                {step}
-                                            </span>
-                                            <p className="mt-5 text-sm font-medium">
-                                                {label}
-                                            </p>
-                                            <p className="mt-0.5 text-xs text-faint">
-                                                {value}
-                                            </p>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="mt-5 flex items-center justify-between rounded-xl border border-line bg-surface-soft p-4">
-                                    <div>
-                                        <p className="text-xs text-faint">
-                                            Véhicule
-                                        </p>
-                                        <p className="mt-1 text-sm font-medium">
-                                            Votre véhicule
-                                        </p>
-                                    </div>
-                                    <span className="font-mono text-xs text-muted">
-                                        DOSSIER #001
+                                    <span
+                                        className="shrink-0 text-muted transition group-hover:translate-x-0.5 group-hover:text-accent"
+                                        aria-hidden
+                                    >
+                                        →
                                     </span>
-                                </div>
-                            </div>
+                                </Link>
+                            ))}
+                        </nav>
+                    </aside>
+                </div>
+
+                <div className="border-t border-line/70 bg-surface-soft/55">
+                    <dl className="mx-auto grid max-w-[76rem] gap-px bg-line/70 sm:grid-cols-3">
+                        <div className="bg-surface-soft px-5 py-4 sm:px-6">
+                            <dt className="text-xs font-medium text-faint">
+                                Localisation
+                            </dt>
+                            <dd className="mt-1 text-sm font-semibold text-ink">
+                                Namur
+                            </dd>
                         </div>
+                        <div className="bg-surface-soft px-5 py-4 sm:px-6">
+                            <dt className="text-xs font-medium text-faint">
+                                Accès
+                            </dt>
+                            <dd className="mt-1 text-sm font-semibold text-ink">
+                                Garage indépendant
+                            </dd>
+                        </div>
+                        <div className="bg-surface-soft px-5 py-4 sm:px-6">
+                            <dt className="text-xs font-medium text-faint">
+                                Réservation
+                            </dt>
+                            <dd className="mt-1 text-sm font-semibold text-ink">
+                                Rendez-vous en ligne
+                            </dd>
+                        </div>
+                    </dl>
+                </div>
+            </section>
+
+            <section
+                id="featured-vehicles"
+                aria-labelledby="featured-vehicles-title"
+                className="border-b border-line/70 bg-surface-soft/30"
+            >
+                <div className="mx-auto max-w-[76rem] px-5 py-12 sm:px-6 sm:py-14">
+                    <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+                        <div>
+                            <p className="text-sm font-semibold text-accent">
+                                Véhicules d’occasion
+                            </p>
+                            <h2
+                                id="featured-vehicles-title"
+                                className="mt-2 text-3xl font-semibold tracking-tight"
+                            >
+                                Nos occasions à la une
+                            </h2>
+                            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted sm:text-base">
+                                Découvrez une sélection de véhicules actuellement
+                                disponibles chez CamboGarage.
+                            </p>
+                        </div>
+                        <Link
+                            href="/vehicles"
+                            className="btn-ghost min-h-11 w-fit shrink-0"
+                        >
+                            Voir toutes les occasions
+                        </Link>
+                    </div>
+
+                    <div className="mt-7">
+                        <FeaturedVehicles />
                     </div>
                 </div>
             </section>
 
             <section
                 id="services"
-                className="border-y border-line/70 bg-surface-soft/55"
+                aria-labelledby="services-title"
+                className="scroll-mt-18"
             >
-                <div className="mx-auto max-w-7xl px-5 py-16 sm:px-6">
-                    <div className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr]">
+                <div className="mx-auto max-w-[76rem] px-5 py-14 sm:px-6 sm:py-16">
+                    <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
                         <div>
-                            <p className="eyebrow">Une expérience simple</p>
-                            <h2 className="mt-3 max-w-sm text-2xl font-semibold tracking-tight sm:text-3xl">
-                                Moins d’attente. Plus de visibilité.
+                            <p className="text-sm font-semibold text-accent">
+                                Services principaux
+                            </p>
+                            <h2
+                                id="services-title"
+                                className="mt-2 text-3xl font-semibold tracking-tight"
+                            >
+                                L’essentiel pour votre véhicule
                             </h2>
+                            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted sm:text-base">
+                                Des prestations courantes, présentées simplement
+                                pour vous aider à préparer votre demande.
+                            </p>
                         </div>
+                        <Link
+                            href="/dashboard/appointments/new"
+                            prefetch={false}
+                            className="btn-ghost min-h-11 w-fit shrink-0"
+                        >
+                            Demander un rendez-vous
+                        </Link>
+                    </div>
 
-                        <div className="grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-3">
-                            {features.map((feature) => (
-                                <article
-                                    key={feature.number}
-                                    className="bg-surface p-6 sm:p-7"
-                                >
-                                    <span className="font-mono text-xs text-accent">
-                                        /{feature.number}
-                                    </span>
-                                    <h3 className="mt-10 font-semibold text-ink">
-                                        {feature.title}
-                                    </h3>
-                                    <p className="mt-2 text-sm leading-6 text-muted">
-                                        {feature.description}
-                                    </p>
-                                </article>
-                            ))}
-                        </div>
+                    <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        {services.map((service) => (
+                            <article
+                                key={service.title}
+                                className="rounded-xl border border-line bg-surface p-5 shadow-[0_8px_20px_rgba(0,0,0,0.08)]"
+                            >
+                                <h3 className="text-lg font-semibold">
+                                    {service.title}
+                                </h3>
+                                <p className="mt-2 text-sm leading-6 text-muted">
+                                    {service.description}
+                                </p>
+                                {service.href && (
+                                    <Link
+                                        href={service.href}
+                                        className="text-link mt-4 inline-flex min-h-11 items-center"
+                                    >
+                                        Consulter le catalogue
+                                    </Link>
+                                )}
+                            </article>
+                        ))}
                     </div>
                 </div>
             </section>
 
+            <section
+                aria-labelledby="appointment-steps-title"
+                className="border-t border-line/70 bg-surface-soft/45"
+            >
+                <div className="mx-auto max-w-[76rem] px-5 py-14 sm:px-6 sm:py-16">
+                    <div className="grid gap-8 lg:grid-cols-[0.55fr_1.45fr] lg:items-start">
+                        <div>
+                            <p className="text-sm font-semibold text-accent">
+                                Rendez-vous en ligne
+                            </p>
+                            <h2
+                                id="appointment-steps-title"
+                                className="mt-2 text-3xl font-semibold tracking-tight"
+                            >
+                                Une demande simple à suivre
+                            </h2>
+                            <Link
+                                href="/dashboard/appointments/new"
+                                prefetch={false}
+                                className="btn-primary mt-6 min-h-11 w-fit"
+                            >
+                                Prendre rendez-vous
+                            </Link>
+                        </div>
+
+                        <ol className="grid gap-4 md:grid-cols-3">
+                            {appointmentSteps.map((step, index) => (
+                                <li
+                                    key={step.title}
+                                    className="border-l-2 border-line pl-4"
+                                >
+                                    <span className="text-sm font-semibold text-accent">
+                                        {index + 1}
+                                    </span>
+                                    <h3 className="mt-2 font-semibold text-ink">
+                                        {step.title}
+                                    </h3>
+                                    <p className="mt-2 text-sm leading-6 text-muted">
+                                        {step.description}
+                                    </p>
+                                </li>
+                            ))}
+                        </ol>
+                    </div>
+                </div>
+            </section>
         </main>
     );
 }

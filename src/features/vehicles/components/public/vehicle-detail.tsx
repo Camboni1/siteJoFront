@@ -8,6 +8,7 @@ import { VehicleGallery } from "@/features/vehicles/components/vehicle-gallery";
 import { VehicleStatusBadge } from "@/features/vehicles/components/vehicle-status-badge";
 import { LoadingScreen } from "@/components/ui/loading-screen";
 import { PageHeader } from "@/components/ui/page-header";
+import { garageWhatsAppHref } from "@/config/garage-contact";
 import { formatDate, formatMileage, formatPrice } from "@/lib/format";
 
 export function VehicleDetail({ id }: { id: string }) {
@@ -71,6 +72,8 @@ export function VehicleDetail({ id }: { id: string }) {
     }
 
     const name = `${vehicle.brand} ${vehicle.model}`;
+    const contactAvailable =
+        vehicle.status === "AVAILABLE" || vehicle.status === "RESERVED";
     const details = [
         ["Année", vehicle.year?.toString() ?? "À préciser"],
         [
@@ -125,6 +128,20 @@ export function VehicleDetail({ id }: { id: string }) {
                                 ? formatPrice(vehicle.price)
                                 : "Prix sur demande"}
                         </p>
+                        {contactAvailable && (
+                            <a
+                                href={garageWhatsAppHref(
+                                    `Bonjour CamboGarage, je souhaite obtenir des informations sur le véhicule ${name}.`
+                                )}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn-primary mt-6 w-full sm:w-auto"
+                                aria-label={`Demander des informations sur ${name} via WhatsApp — nouvel onglet`}
+                            >
+                                Demander des informations
+                                <span aria-hidden>↗</span>
+                            </a>
+                        )}
                     </div>
 
                     <div className="card">

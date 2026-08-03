@@ -18,10 +18,13 @@ import {
 import type { OdooErrorInfo } from "@/features/invoices/lib/odoo-error";
 import type { OdooInvoiceIntegrationResponse } from "@/features/invoices/types/odoo-invoice.types";
 import type { OdooPeppolReadiness } from "@/features/invoices/types/odoo-invoice.types";
+import type { InvoiceStatus } from "@/features/invoices/types/invoice.types";
 import { getPeppolReadiness } from "@/features/invoices/api/odoo-invoices-api";
+import { canSynchronizeInvoiceWithOdoo } from "@/features/invoices/lib/invoice-status";
 
 type OdooIntegrationPanelProps = {
     invoiceId: string;
+    localInvoiceStatus: InvoiceStatus;
     /**
      * Réservé au personnel (ROLE_ADMIN / ROLE_EMPLOYEE). Un client ordinaire
      * ne voit ni les informations techniques ni les actions Odoo. La sécurité
@@ -32,6 +35,7 @@ type OdooIntegrationPanelProps = {
 
 export function OdooIntegrationPanel({
     invoiceId,
+    localInvoiceStatus,
     canManage,
 }: OdooIntegrationPanelProps) {
     // Garde de rôle avant tout appel réseau : un client ordinaire ne déclenche
@@ -41,10 +45,21 @@ export function OdooIntegrationPanel({
         return null;
     }
 
-    return <OdooIntegrationPanelContent invoiceId={invoiceId} />;
+    return (
+        <OdooIntegrationPanelContent
+            invoiceId={invoiceId}
+            localInvoiceStatus={localInvoiceStatus}
+        />
+    );
 }
 
-function OdooIntegrationPanelContent({ invoiceId }: { invoiceId: string }) {
+function OdooIntegrationPanelContent({
+    invoiceId,
+    localInvoiceStatus,
+}: {
+    invoiceId: string;
+    localInvoiceStatus: InvoiceStatus;
+}) {
     const {
         state,
         initialLoading,
@@ -91,6 +106,7 @@ function OdooIntegrationPanelContent({ invoiceId }: { invoiceId: string }) {
             ) : state ? (
                 <OdooPanelBody
                     invoiceId={invoiceId}
+                    localInvoiceStatus={localInvoiceStatus}
                     state={state}
                     pending={pending}
                     actionError={actionError}
@@ -112,6 +128,7 @@ function OdooIntegrationPanelContent({ invoiceId }: { invoiceId: string }) {
 
 type OdooPanelBodyProps = {
     invoiceId: string;
+    localInvoiceStatus: InvoiceStatus;
     state: OdooInvoiceIntegrationResponse;
     pending: "sync" | "post" | "refresh" | "download" | null;
     actionError: OdooErrorInfo | null;
@@ -125,6 +142,7 @@ type OdooPanelBodyProps = {
 
 function OdooPanelBody({
     invoiceId,
+    localInvoiceStatus,
     state,
     pending,
     actionError,
@@ -178,6 +196,8 @@ function OdooPanelBody({
         state.odooInvoiceId !== null && state.lastSuccessfulSyncAt !== null;
     const isPosted = state.accountingStatus === "POSTED";
     const notSyncedYet = !hasOdooLink && state.syncStatus === "NOT_SYNCED";
+    const odooMutationsAllowed =
+        canSynchronizeInvoiceWithOdoo(localInvoiceStatus);
 
     return (
         <div className="mt-4 space-y-6">
@@ -202,6 +222,17 @@ function OdooPanelBody({
             {notSyncedYet && !operationActive && (
                 <p className="text-sm text-muted">
                     Cette facture n&apos;est pas encore synchronisée avec Odoo.
+                </p>
+            )}
+
+            {!odooMutationsAllowed && (
+                <p
+                    className="rounded-xl border border-amber-500/30 bg-amber-500/8 px-4 py-3 text-sm text-amber-300"
+                    role="status"
+                >
+                    {localInvoiceStatus === "DRAFT"
+                        ? "Émettez la facture avant de la synchroniser avec Odoo."
+                        : "Le statut local de cette facture ne permet aucune opération Odoo."}
                 </p>
             )}
 
@@ -402,25 +433,27 @@ function OdooPanelBody({
             )}
 
             <div className="flex flex-wrap items-center gap-3 border-t border-line pt-6">
-                <button
-                    type="button"
-                    // Action principale seulement pour la toute première synchro.
-                    // Sur une facture déjà liée (surtout comptabilisée), la
-                    // resynchronisation devient une action discrète.
-                    className={hasOdooLink ? "btn-ghost" : "btn-primary"}
-                    onClick={onSync}
-                    disabled={mutationsDisabled}
-                >
-                    {pending === "sync"
-                        ? hasOdooLink
-                            ? "Resynchronisation..."
-                            : "Synchronisation..."
-                        : hasOdooLink
-                          ? "Resynchroniser"
-                          : "Synchroniser avec Odoo"}
-                </button>
+                {odooMutationsAllowed && (
+                    <button
+                        type="button"
+                        // Action principale seulement pour la toute première synchro.
+                        // Sur une facture déjà liée (surtout comptabilisée), la
+                        // resynchronisation devient une action discrète.
+                        className={hasOdooLink ? "btn-ghost" : "btn-primary"}
+                        onClick={onSync}
+                        disabled={mutationsDisabled}
+                    >
+                        {pending === "sync"
+                            ? hasOdooLink
+                                ? "Resynchronisation..."
+                                : "Synchronisation..."
+                            : hasOdooLink
+                              ? "Resynchroniser"
+                              : "Synchroniser avec Odoo"}
+                    </button>
+                )}
 
-                {state.canPost && (
+                {odooMutationsAllowed && state.canPost && (
                     <button
                         type="button"
                         className="btn-primary"
@@ -433,16 +466,18 @@ function OdooPanelBody({
                     </button>
                 )}
 
-                <button
-                    type="button"
-                    className="btn-ghost"
-                    onClick={onRefresh}
-                    disabled={mutationsDisabled}
-                >
-                    {pending === "refresh"
-                        ? "Actualisation..."
-                        : "Actualiser les statuts"}
-                </button>
+                {odooMutationsAllowed && (
+                    <button
+                        type="button"
+                        className="btn-ghost"
+                        onClick={onRefresh}
+                        disabled={mutationsDisabled}
+                    >
+                        {pending === "refresh"
+                            ? "Actualisation..."
+                            : "Actualiser les statuts"}
+                    </button>
+                )}
 
                 {state.canDownloadOfficialPdf && (
                     <button

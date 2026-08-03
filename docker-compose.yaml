@@ -1,0 +1,15 @@
+# Point d'entrée fin pour la suite Docker du frontend.
+#
+# La définition canonique de `frontend-test` reste dans le dépôt backend :
+# Compose l'inclut ici, en résolvant son contexte de build depuis ce fichier
+# source. Le runner frontend est volontairement sans réseau et ne monte aucun
+# volume Odoo.
+name: cambogarage
+
+include:
+  - path: ../backend/docker-compose.yaml
+
+services:
+  frontend-test:
+    network_mode: none
+    networks: !reset []

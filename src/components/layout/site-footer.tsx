@@ -1,5 +1,10 @@
 import Link from "next/link";
-import { Brand } from "@/components/ui/brand";
+import { CamboGarageLogo } from "@/components/ui/brand";
+import {
+    GARAGE_PHONE_DISPLAY,
+    GARAGE_PHONE_HREF,
+    garageWhatsAppHref,
+} from "@/config/garage-contact";
 
 export function SiteFooter() {
     return (
@@ -7,7 +12,7 @@ export function SiteFooter() {
             <div className="mx-auto grid max-w-7xl gap-10 px-5 py-10 sm:px-6 md:grid-cols-[1.4fr_0.8fr_0.8fr]">
                 <div>
                     <Link href="/" aria-label="CamboGarage — accueil">
-                        <Brand />
+                        <CamboGarageLogo className="h-20 w-auto max-w-full" />
                     </Link>
                     <p className="mt-4 max-w-sm text-sm leading-6 text-muted">
                         Entretien, réparation et diagnostic avec un suivi simple,
@@ -35,12 +40,14 @@ export function SiteFooter() {
                         </Link>
                         <Link
                             href="/dashboard/appointments/new"
+                            prefetch={false}
                             className="text-muted transition hover:text-accent"
                         >
                             Prendre rendez-vous
                         </Link>
                         <Link
                             href="/dashboard"
+                            prefetch={false}
                             className="text-muted transition hover:text-accent"
                         >
                             Espace client
@@ -54,10 +61,22 @@ export function SiteFooter() {
                         <p>Lundi — Vendredi</p>
                         <p className="font-mono text-xs text-ink">08:00 — 18:00</p>
                         <a
-                            href="tel:+3281123456"
+                            href={GARAGE_PHONE_HREF}
                             className="inline-block transition hover:text-accent"
                         >
-                            +32 81 12 34 56
+                            {GARAGE_PHONE_DISPLAY}
+                        </a>
+                        <a
+                            href={garageWhatsAppHref(
+                                "Bonjour CamboGarage, je souhaite obtenir un renseignement."
+                            )}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex w-fit items-center gap-1.5 font-medium text-accent transition hover:text-accent-strong"
+                            aria-label="Contacter CamboGarage sur WhatsApp — nouvel onglet"
+                        >
+                            WhatsApp
+                            <span aria-hidden>↗</span>
                         </a>
                     </div>
                 </div>

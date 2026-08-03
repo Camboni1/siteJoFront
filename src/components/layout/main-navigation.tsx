@@ -22,6 +22,8 @@ function MainNavigationContent({ pathname }: { pathname: string }) {
     const router = useRouter();
     const { user, loading, logout } = useAuth();
     const [open, setOpen] = useState(false);
+    const [logoutPending, setLogoutPending] = useState(false);
+    const [logoutError, setLogoutError] = useState<string | null>(null);
     const desktopButtonRef = useRef<HTMLButtonElement>(null);
     const compactButtonRef = useRef<HTMLButtonElement>(null);
     const lastTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -71,10 +73,21 @@ function MainNavigationContent({ pathname }: { pathname: string }) {
     const secondaryActive = navigation.secondary.some(isActive);
 
     async function handleLogout() {
-        closeNavigation();
-        await logout();
-        router.push("/login");
-        router.refresh();
+        setLogoutError(null);
+        setLogoutPending(true);
+
+        try {
+            await logout();
+            closeNavigation();
+            router.push("/login");
+            router.refresh();
+        } catch {
+            setLogoutError(
+                "Déconnexion impossible pour le moment. Veuillez réessayer."
+            );
+        } finally {
+            setLogoutPending(false);
+        }
     }
 
     return (
@@ -122,7 +135,7 @@ function MainNavigationContent({ pathname }: { pathname: string }) {
                 aria-label="Navigation principale"
                 className={`${
                     open
-                        ? "absolute top-12 right-0 z-30 flex"
+                        ? "absolute top-[calc(100%+1.25rem)] right-0 z-30 flex"
                         : "hidden"
                 } max-h-[calc(100vh-5rem)] w-[min(22rem,calc(100vw-2.5rem))] flex-col overflow-y-auto overscroll-contain rounded-2xl border border-line bg-surface p-2 shadow-[0_24px_70px_rgba(0,0,0,0.4)] xl:static xl:z-auto xl:flex xl:max-h-none xl:w-auto xl:flex-row xl:items-center xl:overflow-visible xl:rounded-none xl:border-0 xl:bg-transparent xl:p-0 xl:shadow-none`}
             >
@@ -194,6 +207,8 @@ function MainNavigationContent({ pathname }: { pathname: string }) {
                         loading={loading}
                         onNavigate={closeNavigation}
                         onLogout={handleLogout}
+                        logoutPending={logoutPending}
+                        logoutError={logoutError}
                         compact
                     />
                 </div>
@@ -206,6 +221,8 @@ function MainNavigationContent({ pathname }: { pathname: string }) {
                     loading={loading}
                     onNavigate={closeNavigation}
                     onLogout={handleLogout}
+                    logoutPending={logoutPending}
+                    logoutError={logoutError}
                 />
             </div>
         </div>
@@ -282,12 +299,16 @@ function UserActions({
     loading,
     onNavigate,
     onLogout,
+    logoutPending,
+    logoutError,
     compact = false,
 }: {
     user: ReturnType<typeof useAuth>["user"];
     loading: boolean;
     onNavigate: () => void;
     onLogout: () => Promise<void>;
+    logoutPending: boolean;
+    logoutError: string | null;
     compact?: boolean;
 }) {
     if (loading) {
@@ -296,13 +317,30 @@ function UserActions({
 
     if (user) {
         return (
-            <button
-                type="button"
-                onClick={() => void onLogout()}
-                className={compact ? "btn-ghost w-full" : "btn-ghost px-3 py-2"}
-            >
-                Déconnexion
-            </button>
+            <div className={compact ? "grid gap-2" : "relative"}>
+                <button
+                    type="button"
+                    onClick={() => void onLogout()}
+                    disabled={logoutPending}
+                    className={
+                        compact ? "btn-ghost w-full" : "btn-ghost px-3 py-2"
+                    }
+                >
+                    {logoutPending ? "Déconnexion..." : "Déconnexion"}
+                </button>
+                {logoutError && (
+                    <p
+                        role="alert"
+                        className={
+                            compact
+                                ? "text-xs text-red-300"
+                                : "absolute top-[calc(100%+0.5rem)] right-0 z-40 w-72 rounded-xl border border-red-500/30 bg-surface px-3 py-2 text-xs text-red-300 shadow-xl"
+                        }
+                    >
+                        {logoutError}
+                    </p>
+                )}
+            </div>
         );
     }
 

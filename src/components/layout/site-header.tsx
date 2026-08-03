@@ -1,17 +1,21 @@
 import Link from "next/link";
 import { MainNavigation } from "@/components/layout/main-navigation";
-import { Brand } from "@/components/ui/brand";
+import { CamboGarageLogo } from "@/components/ui/brand";
 
 export function SiteHeader() {
     return (
         <header className="site-header">
-            <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-5 sm:px-6">
+            <div className="mx-auto flex h-18 max-w-[76rem] items-center gap-3 px-5 sm:gap-4 sm:px-6">
                 <Link
                     href="/"
                     aria-label="CamboGarage — accueil"
-                    className="shrink-0"
+                    className="flex shrink-0 items-center"
                 >
-                    <Brand />
+                    <CamboGarageLogo
+                        className="h-16 w-auto max-w-32 object-contain"
+                        eager
+                        sizes="8rem"
+                    />
                 </Link>
                 <MainNavigation />
             </div>

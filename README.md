@@ -1,5 +1,21 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Tests reproductibles
+
+La définition canonique du service de test reste dans le dépôt backend. Le
+fichier Compose fin de ce dépôt l'inclut sans dupliquer son build, sa commande
+ou ses variables. Depuis le dépôt frontend, la commande officielle est :
+
+```bash
+docker compose \
+  -f docker-compose.yaml \
+  --profile test \
+  run --build --rm frontend-test
+```
+
+Le conteneur de test n'a ni réseau ni volume Odoo. Compose utilise le
+`Dockerfile` de ce dépôt et sa cible `test`.
+
 ## Getting Started
 
 First, run the development server:

@@ -1,4 +1,16 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
+function apiUrl(path: string) {
+    if (typeof window !== "undefined") {
+        return path;
+    }
+
+    const backendUrl = (
+        process.env.BACKEND_URL ??
+        process.env.NEXT_PUBLIC_API_URL ??
+        "http://localhost:8080"
+    ).replace(/\/+$/, "");
+
+    return `${backendUrl}${path}`;
+}
 
 export class ApiError extends Error {
     readonly status: number;
@@ -66,7 +78,7 @@ export async function apiFetch<T>(
 ): Promise<T> {
     const { skipJson, headers, ...fetchOptions } = options;
 
-    const response = await fetch(`${API_URL}${path}`, {
+    const response = await fetch(apiUrl(path), {
         ...fetchOptions,
         credentials: "include",
         headers: {
@@ -96,7 +108,7 @@ export type ApiBlobResult = {
 };
 
 export async function apiFetchBlob(path: string): Promise<ApiBlobResult> {
-    const response = await fetch(`${API_URL}${path}`, {
+    const response = await fetch(apiUrl(path), {
         credentials: "include",
     });
 

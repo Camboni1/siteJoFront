@@ -430,7 +430,13 @@ describe("OdooIntegrationPanel — readiness Peppol en lecture seule", () => {
     });
 
     it("ne charge aucune readiness et aucune action pour CUSTOMER", async () => {
-        render(<OdooIntegrationPanel invoiceId="inv-customer" canManage={false} />);
+        render(
+            <OdooIntegrationPanel
+                invoiceId="inv-customer"
+                localInvoiceStatus="SENT"
+                canManage={false}
+            />
+        );
         expect(odooApi.getPeppolReadiness).not.toHaveBeenCalled();
         expect(screen.queryByText(/Peppol/)).not.toBeInTheDocument();
     });
@@ -441,11 +447,16 @@ afterEach(() => {
 });
 
 async function renderReady(
-    props: { invoiceId?: string; canManage?: boolean } = {}
+    props: {
+        invoiceId?: string;
+        localInvoiceStatus?: "DRAFT" | "SENT" | "CANCELLED";
+        canManage?: boolean;
+    } = {}
 ) {
     const view = render(
         <OdooIntegrationPanel
             invoiceId={props.invoiceId ?? "inv-1"}
+            localInvoiceStatus={props.localInvoiceStatus ?? "SENT"}
             canManage={props.canManage ?? true}
         />
     );
@@ -455,6 +466,60 @@ async function renderReady(
 }
 
 describe("OdooIntegrationPanel — libellés adaptatifs", () => {
+    it("brouillon local : demande l’émission et n’expose aucune mutation Odoo", async () => {
+        vi.mocked(odooApi.getOdooInvoiceState).mockResolvedValue(neverSynced());
+
+        render(
+            <OdooIntegrationPanel
+                invoiceId="inv-draft"
+                localInvoiceStatus="DRAFT"
+                canManage
+            />
+        );
+
+        expect(
+            await screen.findByText(
+                "Émettez la facture avant de la synchroniser avec Odoo."
+            )
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole("button", { name: "Synchroniser avec Odoo" })
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole("button", { name: "Actualiser les statuts" })
+        ).not.toBeInTheDocument();
+        expect(odooApi.synchronizeInvoiceWithOdoo).not.toHaveBeenCalled();
+        expect(odooApi.postInvoiceToOdoo).not.toHaveBeenCalled();
+        expect(odooApi.refreshOdooInvoice).not.toHaveBeenCalled();
+    });
+
+    it("facture annulée : n’expose aucune mutation Odoo", async () => {
+        vi.mocked(odooApi.getOdooInvoiceState).mockResolvedValue(syncedDraft());
+
+        render(
+            <OdooIntegrationPanel
+                invoiceId="inv-cancelled"
+                localInvoiceStatus="CANCELLED"
+                canManage
+            />
+        );
+
+        expect(
+            await screen.findByText(
+                "Le statut local de cette facture ne permet aucune opération Odoo."
+            )
+        ).toBeInTheDocument();
+        expect(
+            screen.queryByRole("button", { name: "Resynchroniser" })
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole("button", { name: "Comptabiliser" })
+        ).not.toBeInTheDocument();
+        expect(
+            screen.queryByRole("button", { name: "Actualiser les statuts" })
+        ).not.toBeInTheDocument();
+    });
+
     it("facture jamais synchronisée : action principale « Synchroniser avec Odoo »", async () => {
         vi.mocked(odooApi.getOdooInvoiceState).mockResolvedValue(neverSynced());
 
@@ -701,7 +766,11 @@ describe("OdooIntegrationPanel — déclenchement des actions", () => {
 describe("OdooIntegrationPanel — contrôle des rôles", () => {
     it("ne rend rien et n'appelle aucune route pour un client ordinaire", () => {
         const { container } = render(
-            <OdooIntegrationPanel invoiceId="inv-1" canManage={false} />
+            <OdooIntegrationPanel
+                invoiceId="inv-1"
+                localInvoiceStatus="SENT"
+                canManage={false}
+            />
         );
 
         expect(container).toBeEmptyDOMElement();

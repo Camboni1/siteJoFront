@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 vi.mock("@/components/providers/auth-provider");
@@ -326,6 +326,20 @@ describe("SiteHeader", () => {
                 name: "CamboGarage — accueil",
             })
         ).toHaveAttribute("href", "/");
+        expect(
+            screen.getByRole("img", { name: "Cambo Garage" })
+        ).toHaveAttribute(
+            "src",
+            expect.stringContaining("url=%2Flogo.png")
+        );
+        expect(
+            screen.getByRole("img", { name: "Cambo Garage" })
+        ).toHaveClass("h-16", "w-auto", "object-contain");
+        expect(
+            screen.getByRole("img", { name: "Cambo Garage" })
+        ).toHaveAttribute("loading", "eager");
+        expect(screen.queryByText("CG")).not.toBeInTheDocument();
+        expect(screen.queryByText("Atelier automobile")).not.toBeInTheDocument();
 
         const logoutButtons = screen.getAllByRole("button", {
             name: "Déconnexion",
@@ -335,6 +349,43 @@ describe("SiteHeader", () => {
         expect(logoutMock).toHaveBeenCalledTimes(1);
         expect(pushMock).toHaveBeenCalledWith("/login");
         expect(refreshMock).toHaveBeenCalled();
+    });
+
+    it("désactive la déconnexion pendant l’appel et affiche une erreur sûre", async () => {
+        mockAuth(employee);
+        let rejectLogout: ((reason?: unknown) => void) | undefined;
+        logoutMock.mockReturnValueOnce(
+            new Promise<void>((_resolve, reject) => {
+                rejectLogout = reject;
+            })
+        );
+        const user = userEvent.setup();
+        render(<SiteHeader />);
+
+        await user.click(
+            screen.getAllByRole("button", { name: "Déconnexion" })[0]
+        );
+
+        expect(
+            screen
+                .getAllByRole("button", { name: "Déconnexion..." })
+                .every((button) => button.hasAttribute("disabled"))
+        ).toBe(true);
+
+        rejectLogout?.(new Error("détail interne à ne pas afficher"));
+
+        await waitFor(() =>
+            expect(
+                screen.getAllByText(
+                    "Déconnexion impossible pour le moment. Veuillez réessayer."
+                ).length
+            ).toBeGreaterThan(0)
+        );
+        expect(
+            screen.queryByText("détail interne à ne pas afficher")
+        ).not.toBeInTheDocument();
+        expect(pushMock).not.toHaveBeenCalled();
+        expect(refreshMock).not.toHaveBeenCalled();
     });
 
     it("n’appelle aucune action d’authentification à l’ouverture", async () => {
@@ -360,5 +411,21 @@ describe("SiteHeader", () => {
         expect(
             screen.getAllByLabelText("Chargement de l’utilisateur").length
         ).toBeGreaterThan(0);
+    });
+
+    it("conserve un déclencheur compact et un panneau responsive", () => {
+        mockAuth(employee);
+        render(<SiteHeader />);
+
+        expect(
+            screen.getByRole("button", {
+                name: "Ouvrir la navigation",
+            })
+        ).toHaveClass("xl:hidden");
+        expect(
+            screen.getByRole("navigation", {
+                name: "Navigation principale",
+            })
+        ).toHaveClass("xl:static", "xl:flex");
     });
 });
